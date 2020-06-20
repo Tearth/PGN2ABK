@@ -159,6 +159,12 @@ namespace PGN2ABK.Board
 
                                 break;
                             }
+
+                            case PieceType.WKing:
+                            case PieceType.BKing:
+                            {
+                                return sourcePosition;
+                            }
                         }
                     }
                 }
