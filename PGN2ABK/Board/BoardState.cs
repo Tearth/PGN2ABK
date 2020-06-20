@@ -148,6 +148,17 @@ namespace PGN2ABK.Board
 
                                 break;
                             }
+
+                            case PieceType.WQueen:
+                            case PieceType.BQueen:
+                            {
+                                if (CanMoveAsBishop(sourcePosition, targetPosition) || CanMoveAsRook(sourcePosition, targetPosition))
+                                {
+                                    return sourcePosition;
+                                }
+
+                                break;
+                            }
                         }
                     }
                 }

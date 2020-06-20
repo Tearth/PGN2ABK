@@ -38,5 +38,10 @@ namespace PGN2ABK.Board
         {
             return !(a == b);
         }
+
+        public override string ToString()
+        {
+            return $"[{X}, {Y}]";
+        }
     }
 }
