@@ -10,10 +10,12 @@ namespace PGN2ABK.Pgn
         {
             var board = new BoardState();
             var moves = SplitGameIntoMoves(game);
+            var white = true;
 
             foreach (var rawMove in moves)
             {
-                var parsedMove = board.ParseMove(rawMove);
+                var parsedMove = board.ParseMove(rawMove, white);
+                white = !white;
             }
 
             return null;

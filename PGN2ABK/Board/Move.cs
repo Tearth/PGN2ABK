@@ -1,12 +1,12 @@
 ﻿namespace PGN2ABK.Board
 {
-    public class Move
+    public struct Move
     {
-        public int From { get; set; }
-        public int To { get; set; }
+        public Position From { get; set; }
+        public Position To { get; set; }
         public int Priority { get; set; }
 
-        public Move(int from, int to, int priority)
+        public Move(Position from, Position to, int priority)
         {
             From = from;
             To = to;
