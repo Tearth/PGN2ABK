@@ -127,6 +127,15 @@ namespace PGN2ABK.Board
                 }
             }
 
+            if (pieceType == PieceType.WPawn || pieceType == PieceType.BPawn)
+            {
+                var delta = (move.From - move.To).Abs();
+                if (delta.X == 1 && delta.Y == 1 && GetPiece(move.To) == PieceType.None)
+                {
+                    SetPiece(new Position(move.To.X, move.From.Y), PieceType.None);
+                }
+            }
+
             SetPiece(move.From, PieceType.None);
             SetPiece(move.To, pieceType);
         }
@@ -144,7 +153,14 @@ namespace PGN2ABK.Board
 
             if (kill && GetPiece(targetPosition) == PieceType.None)
             {
-                throw new ArgumentException("Kill move \"{move}\" on an empty field", nameof(move));
+                // Check en-passant
+                var enemyPawn = white ? PieceType.BPawn : PieceType.WPawn;
+                var enemyPawnPosition = targetPosition - new Position(0, sign);
+
+                if (GetPiece(enemyPawnPosition) != enemyPawn)
+                {
+                    throw new ArgumentException("Kill move \"{move}\" on an empty field", nameof(move));
+                }
             }
 
             if (!kill && GetPiece(targetPosition) != PieceType.None)
