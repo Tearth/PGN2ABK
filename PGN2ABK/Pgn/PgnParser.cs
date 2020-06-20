@@ -5,11 +5,18 @@ namespace PGN2ABK.Pgn
 {
     public class PgnParser
     {
-        public IEnumerable<ParserEntry> Parse(IEnumerable<string> input)
+        private PgnGameParser _gameParser;
+
+        public PgnParser()
+        {
+            _gameParser = new PgnGameParser();
+        }
+
+        public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input)
         {
             foreach (var line in input.Where(p => p.StartsWith('1')))
             {
-
+                _gameParser.Parse(line);
             }
 
             return null;
