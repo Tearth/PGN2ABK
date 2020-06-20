@@ -21,6 +21,11 @@ namespace PGN2ABK.Board
             return new Position(Math.Abs(X), Math.Abs(Y));
         }
 
+        public bool IsValid()
+        {
+            return X >= 1 && X <= 8 && Y >= 1 && Y <= 8;
+        }
+
         public static Position operator+(Position a, Position b)
         {
             return new Position(a.X + b.X, a.Y + b.Y);

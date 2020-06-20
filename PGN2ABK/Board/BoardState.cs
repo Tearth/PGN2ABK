@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using PGN2ABK.Helpers;
 
 namespace PGN2ABK.Board
@@ -42,6 +43,22 @@ namespace PGN2ABK.Board
         {
             // Board is rotated by 90 degrees, so x and y are inverted
             _state[y - 1, x - 1] = piece;
+        }
+
+        public Position FindPiece(PieceType piece)
+        {
+            for (var x = 1; x <= 8; x++)
+            {
+                for (var y = 1; y <= 8; y++)
+                {
+                    if (GetPiece(x, y) == piece)
+                    {
+                        return new Position(x, y);
+                    }
+                }
+            }
+
+            return Position.Zero;
         }
 
         public Move ParseMove(string move, bool white)
@@ -225,7 +242,7 @@ namespace PGN2ABK.Board
         {
             var pieceType = PieceConverter.FromPgn(move[0], white);
             var targetPosition = PositionConverter.FromPgn(move.Substring(move.Length - 2, 2));
-            var sourcePosition = GetSourcePosition(move, targetPosition, pieceType, ambiguity);
+            var sourcePosition = GetSourcePosition(move, targetPosition, pieceType, white, ambiguity);
 
             if (kill && GetPiece(sourcePosition) == PieceType.None)
             {
@@ -274,7 +291,7 @@ namespace PGN2ABK.Board
             }
         }
 
-        private Position GetSourcePosition(string move, Position targetPosition, PieceType piece, bool ambiguity)
+        private Position GetSourcePosition(string move, Position targetPosition, PieceType piece, bool white, bool ambiguity)
         {
             for (var x = 1; x <= 8; x++)
             {
@@ -309,7 +326,7 @@ namespace PGN2ABK.Board
                             case PieceType.WKnight:
                             case PieceType.BKnight:
                             {
-                                if (CanMoveAsKnight(sourcePosition, targetPosition))
+                                if (CanMoveAsKnight(sourcePosition, targetPosition, white))
                                 {
                                     return sourcePosition;
                                 }
@@ -320,7 +337,7 @@ namespace PGN2ABK.Board
                             case PieceType.WBishop:
                             case PieceType.BBishop:
                             {
-                                if (CanMoveAsBishop(sourcePosition, targetPosition))
+                                if (CanMoveAsBishop(sourcePosition, targetPosition, white))
                                 {
                                     return sourcePosition;
                                 }
@@ -331,7 +348,7 @@ namespace PGN2ABK.Board
                             case PieceType.WRook:
                             case PieceType.BRook:
                             {
-                                if (CanMoveAsRook(sourcePosition, targetPosition))
+                                if (CanMoveAsRook(sourcePosition, targetPosition, white))
                                 {
                                     return sourcePosition;
                                 }
@@ -342,7 +359,8 @@ namespace PGN2ABK.Board
                             case PieceType.WQueen:
                             case PieceType.BQueen:
                             {
-                                if (CanMoveAsBishop(sourcePosition, targetPosition) || CanMoveAsRook(sourcePosition, targetPosition))
+                                if (CanMoveAsBishop(sourcePosition, targetPosition, white) ||
+                                    CanMoveAsRook(sourcePosition, targetPosition, white))
                                 {
                                     return sourcePosition;
                                 }
@@ -363,29 +381,34 @@ namespace PGN2ABK.Board
             throw new ArgumentException($"Can't parse \"{move}\" (piece move)", nameof(move));
         }
 
-        private bool CanMoveAsKnight(Position sourcePosition, Position targetPosition)
+        private bool CanMoveAsKnight(Position sourcePosition, Position targetPosition, bool white)
         {
             var delta = (sourcePosition - targetPosition).Abs();
-            return delta.X == 2 && delta.Y == 1 || delta.X == 1 && delta.Y == 2;
-        }
-
-        private bool CanMoveAsBishop(Position sourcePosition, Position targetPosition)
-        {
-            var delta = (sourcePosition - targetPosition).Abs();
-            if (delta.X == delta.Y)
+            if (delta.X == 2 && delta.Y == 1 || delta.X == 1 && delta.Y == 2)
             {
-                return !IsPieceBetween(sourcePosition, targetPosition);
+                return !IsPiecePinned(sourcePosition, targetPosition, white);
             }
 
             return false;
         }
 
-        private bool CanMoveAsRook(Position sourcePosition, Position targetPosition)
+        private bool CanMoveAsBishop(Position sourcePosition, Position targetPosition, bool white)
+        {
+            var delta = (sourcePosition - targetPosition).Abs();
+            if (delta.X == delta.Y)
+            {
+                return !IsPieceBetween(sourcePosition, targetPosition) && !IsPiecePinned(sourcePosition, targetPosition, white);
+            }
+
+            return false;
+        }
+
+        private bool CanMoveAsRook(Position sourcePosition, Position targetPosition, bool white)
         {
             if (sourcePosition.X == targetPosition.X && sourcePosition.Y != targetPosition.Y ||
                 sourcePosition.X != targetPosition.X && sourcePosition.Y == targetPosition.Y)
             {
-                if (!IsPieceBetween(sourcePosition, targetPosition))
+                if (!IsPieceBetween(sourcePosition, targetPosition) && !IsPiecePinned(sourcePosition, targetPosition, white))
                 {
                     return true;
                 }
@@ -398,7 +421,6 @@ namespace PGN2ABK.Board
         {
             var stepX = a.X == b.X ? 0 : b.X > a.X ? 1 : -1;
             var stepY = a.Y == b.Y ? 0 : b.Y > a.Y ? 1 : -1;
-
             var step = new Position(stepX, stepY);
             var current = a + step;
 
@@ -407,6 +429,58 @@ namespace PGN2ABK.Board
                 if (GetPiece(current) != PieceType.None)
                 {
                     return true;
+                }
+
+                current += step;
+            }
+
+            return false;
+        }
+
+        private bool IsPiecePinned(Position sourcePosition, Position targetPosition, bool white)
+        {
+            var kingPosition = FindPiece(white ? PieceType.WKing : PieceType.BKing);
+            var sourceDelta = kingPosition - sourcePosition;
+            var sourceDeltaAbs = sourceDelta.Abs();
+
+            if (sourceDeltaAbs.X != sourceDeltaAbs.Y && sourceDelta.X != 0 && sourceDelta.Y != 0)
+            {
+                return false;
+            }
+
+            var stepX = sourcePosition.X == kingPosition.X ? 0 : kingPosition.X > sourcePosition.X ? -1 : 1;
+            var stepY = sourcePosition.Y == kingPosition.Y ? 0 : kingPosition.Y > sourcePosition.Y ? -1 : 1;
+            var step = new Position(stepX, stepY);
+            var current = kingPosition + step;
+
+            while (current.IsValid())
+            {
+                if (current == sourcePosition)
+                {
+                    current += step;
+                    continue;
+                }
+
+                if (current == targetPosition)
+                {
+                    return false;
+                }
+
+                var pieceOnField = GetPiece(current);
+                if (pieceOnField != PieceType.None)
+                {
+                    if (step.X != 0 && step.Y != 0)
+                    {
+                        return white ? 
+                            pieceOnField == PieceType.BBishop || pieceOnField == PieceType.BQueen :
+                            pieceOnField == PieceType.WBishop || pieceOnField == PieceType.WQueen;
+                    }
+                    else
+                    {
+                        return white ?
+                            pieceOnField == PieceType.BRook || pieceOnField == PieceType.BQueen :
+                            pieceOnField == PieceType.WRook || pieceOnField == PieceType.WQueen;
+                    }
                 }
 
                 current += step;
