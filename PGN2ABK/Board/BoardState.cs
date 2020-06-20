@@ -94,6 +94,18 @@ namespace PGN2ABK.Board
                     var kingPosition = white ? new Position(5, 1) : new Position(5, 8);
                     return new Move(kingPosition, kingPosition - new Position(2, 0), 5);
                 }
+
+                // Piece kill from the specified line
+                case 5 when move[2] == 'x':
+                {
+                    return ParsePieceMove(move, white, true, true);
+                }
+
+                // Piece move from the specified rank
+                case 5 when move[2] != 'x':
+                {
+                    return ParsePieceMove(move, white, false, true);
+                }
             }
 
             throw new ArgumentException($"Can't parse \"{move}\"", nameof(move));
@@ -155,8 +167,7 @@ namespace PGN2ABK.Board
         private Move ParsePieceMove(string move, bool white, bool kill, bool ambiguity)
         {
             var pieceType = PieceConverter.FromPgn(move[0], white);
-            var targetPositionStartIndex = kill || ambiguity ? 2 : 1;
-            var targetPosition = PositionConverter.FromPgn(move.Substring(targetPositionStartIndex, 2));
+            var targetPosition = PositionConverter.FromPgn(move.Substring(move.Length - 2, 2));
             var sourcePosition = GetSourcePosition(move, targetPosition, pieceType, ambiguity);
 
             if (kill && GetPiece(sourcePosition) == PieceType.None)
@@ -182,10 +193,21 @@ namespace PGN2ABK.Board
 
                     if (ambiguity)
                     {
-                        var file = move[1] - 'a' + 1;
-                        if (file != x)
+                        if (move[1] == move[3] && move[2] != 'x')
                         {
-                            continue;
+                            var rank = move[2] - '0';
+                            if (rank != y)
+                            {
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            var file = move[1] - 'a' + 1;
+                            if (file != x)
+                            {
+                                continue;
+                            }
                         }
                     }
 
