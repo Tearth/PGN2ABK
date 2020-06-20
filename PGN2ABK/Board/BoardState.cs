@@ -46,22 +46,53 @@ namespace PGN2ABK.Board
 
         public Move ParseMove(string move, bool white)
         {
+            move = move.Replace("#", "");
+            move = move.Replace("+", "");
+
             switch (move.Length)
             {
-                // Pawn push
+                // Pawn move
                 case 2:
                 {
-                    return ParsePawnPush(move, white);
+                    return ParsePawnMove(move, white, false);
                 }
 
+                // Short castling
+                case 3 when move == "O-O":
+                {
+                    var kingPosition = white ? new Position(5, 1) : new Position(5, 8);
+                    return new Move(kingPosition, kingPosition + new Position(2, 0), 5);
+                }
+
+                // Piece move
                 case 3:
                 {
-                    return ParsePieceMove(move, white);
+                    return ParsePieceMove(move, white, false, false);
                 }
 
-                case 4:
+                // Piece move from the specified file
+                case 4 when move[1] != 'x':
                 {
-                    break;
+                    return ParsePieceMove(move, white, false, true);
+                }
+
+                // Pawn kill
+                case 4 when char.IsLower(move[0]) && move[1] == 'x':
+                {
+                    return ParsePawnMove(move, white, true);
+                }
+
+                // Piece kill
+                case 4 when char.IsUpper(move[0]) && move[1] == 'x':
+                {
+                    return ParsePieceMove(move, white, true, false);
+                }
+
+                // Long castling
+                case 5 when move == "O-O-O":
+                {
+                    var kingPosition = white ? new Position(5, 1) : new Position(5, 8);
+                    return new Move(kingPosition, kingPosition - new Position(3, 0), 5);
                 }
             }
 
@@ -75,14 +106,26 @@ namespace PGN2ABK.Board
             SetPiece(move.To, pieceType);
         }
 
-        private Move ParsePawnPush(string move, bool white)
+        private Move ParsePawnMove(string move, bool white, bool kill)
         {
-            var targetPosition = PositionConverter.FromPgn(move);
+            var targetMove = kill ? move.Substring(2, 2) : move;
+            var targetPosition = PositionConverter.FromPgn(targetMove);
             var targetPiece = white ? PieceType.WPawn : PieceType.BPawn;
             var sign = white ? 1 : -1;
 
-            var shortPushFrom = targetPosition - new Position(0, 1 * sign);
-            var longPushFrom = targetPosition - new Position(0, 2 * sign);
+            var relativeFile = kill ? targetMove[0] > move[0] ? 1 : -1 : 0;
+            var shortPushFrom = targetPosition - new Position(relativeFile, 1 * sign);
+            var longPushFrom = targetPosition - new Position(relativeFile, 2 * sign);
+
+            if (kill && GetPiece(targetPosition) == PieceType.None)
+            {
+                throw new ArgumentException("Kill move \"{move}\" on an empty field", nameof(move));
+            }
+
+            if (!kill && GetPiece(targetPosition) != PieceType.None)
+            {
+                throw new ArgumentException("Pawn move \"{move}\" on an non empty field", nameof(move));
+            }
 
             if (GetPiece(shortPushFrom) == targetPiece)
             {
@@ -96,22 +139,43 @@ namespace PGN2ABK.Board
             throw new ArgumentException($"Can't parse \"{move}\" (pawn push)", nameof(move));
         }
         
-        private Move ParsePieceMove(string move, bool white)
+        private Move ParsePieceMove(string move, bool white, bool kill, bool ambiguity)
         {
             var pieceType = PieceConverter.FromPgn(move[0], white);
-            var targetPosition = PositionConverter.FromPgn(move.Substring(1, 2));
-            var sourcePosition = GetSourcePosition(move, targetPosition, pieceType);
+            var targetPositionStartIndex = kill || ambiguity ? 2 : 1;
+            var targetPosition = PositionConverter.FromPgn(move.Substring(targetPositionStartIndex, 2));
+            var sourcePosition = GetSourcePosition(move, targetPosition, pieceType, ambiguity);
+
+            if (kill && GetPiece(sourcePosition) == PieceType.None)
+            {
+                throw new ArgumentException("Kill move \"{move}\" on an empty field", nameof(move));
+            }
+
+            if (!kill && GetPiece(targetPosition) != PieceType.None)
+            {
+                throw new ArgumentException("Pawn move \"{move}\" on an non empty field", nameof(move));
+            }
 
             return new Move(sourcePosition, targetPosition, 5);
         }
 
-        private Position GetSourcePosition(string move, Position targetPosition, PieceType piece)
+        private Position GetSourcePosition(string move, Position targetPosition, PieceType piece, bool ambiguity)
         {
             for (var x = 1; x <= 8; x++)
             {
                 for (var y = 1; y <= 8; y++)
                 {
                     var sourcePosition = new Position(x, y);
+
+                    if (ambiguity)
+                    {
+                        var file = move[1] - 'a' + 1;
+                        if (file != x)
+                        {
+                            continue;
+                        }
+                    }
+
                     if (GetPiece(sourcePosition) == piece)
                     {
                         switch (piece)

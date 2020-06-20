@@ -12,7 +12,7 @@ namespace PGN2ABK.Pgn
             var moves = SplitGameIntoMoves(game);
             var white = true;
 
-            foreach (var rawMove in moves)
+            foreach (var rawMove in moves.Take(moves.Count() - 1))
             {
                 var parsedMove = board.ParseMove(rawMove, white);
                 board.ExecuteMove(parsedMove);

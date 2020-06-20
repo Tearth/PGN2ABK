@@ -8,6 +8,8 @@ namespace PGN2ABK.Board
         public int X { get; set; }
         public int Y { get; set; }
 
+        public static Position Zero = new Position(0, 0);
+
         public Position(int x, int y)
         {
             X = x;
