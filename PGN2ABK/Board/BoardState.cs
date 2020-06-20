@@ -61,7 +61,12 @@ namespace PGN2ABK.Board
                 case 3 when move == "O-O":
                 {
                     var kingPosition = white ? new Position(5, 1) : new Position(5, 8);
-                    return new Move(kingPosition, kingPosition + new Position(2, 0), 5);
+                    return new Move
+                    {
+                        From = kingPosition,
+                        To = kingPosition + new Position(2, 0),
+                        ShortCastling = true
+                    };
                 }
 
                 // Piece move
@@ -70,10 +75,10 @@ namespace PGN2ABK.Board
                     return ParsePieceMove(move, white, false, false);
                 }
 
-                // Piece move from the specified file
-                case 4 when move[1] != 'x':
+                // Promotion
+                case 4 when move[2] == '=':
                 {
-                    return ParsePieceMove(move, white, false, true);
+                    return ParsePromotion(move, white);
                 }
 
                 // Pawn kill
@@ -88,11 +93,22 @@ namespace PGN2ABK.Board
                     return ParsePieceMove(move, white, true, false);
                 }
 
+                // Piece move from the specified file
+                case 4 when move[1] != 'x':
+                {
+                    return ParsePieceMove(move, white, false, true);
+                }
+
                 // Long castling
                 case 5 when move == "O-O-O":
                 {
                     var kingPosition = white ? new Position(5, 1) : new Position(5, 8);
-                    return new Move(kingPosition, kingPosition - new Position(2, 0), 5);
+                    return new Move
+                    {
+                        From = kingPosition,
+                        To = kingPosition - new Position(2, 0),
+                        LongCastling = true
+                    };
                 }
 
                 // Piece kill from the specified line
@@ -114,30 +130,28 @@ namespace PGN2ABK.Board
         public void ExecuteMove(Move move)
         {
             var pieceType = GetPiece(move.From);
-            if (pieceType == PieceType.WKing || pieceType == PieceType.BKing)
+            if (move.ShortCastling || move.LongCastling)
             {
-                if (Math.Abs(move.From.X - move.To.X) == 2)
-                {
-                    var castlePosition = new Position(move.From.X < move.To.X ? 8 : 1, move.From.Y);
-                    var castleTargetPosition = castlePosition + new Position(move.From.X < move.To.X ? -2 : 3, 0);
-                    var castlePieceType = GetPiece(castlePosition);
+                var castlePosition = new Position(move.ShortCastling ? 8 : 1, move.From.Y);
+                var castleTargetPosition = castlePosition + new Position(move.ShortCastling ? -2 : 3, 0);
+                var castlePieceType = GetPiece(castlePosition);
 
-                    SetPiece(castlePosition, PieceType.None);
-                    SetPiece(castleTargetPosition, castlePieceType);
-                }
+                SetPiece(castlePosition, PieceType.None);
+                SetPiece(castleTargetPosition, castlePieceType);
             }
-
-            if (pieceType == PieceType.WPawn || pieceType == PieceType.BPawn)
+            
+            if (move.EnPassant)
             {
-                var delta = (move.From - move.To).Abs();
-                if (delta.X == 1 && delta.Y == 1 && GetPiece(move.To) == PieceType.None)
-                {
-                    SetPiece(new Position(move.To.X, move.From.Y), PieceType.None);
-                }
+                SetPiece(new Position(move.To.X, move.From.Y), PieceType.None);
             }
 
             SetPiece(move.From, PieceType.None);
             SetPiece(move.To, pieceType);
+
+            if (move.Promotion != null)
+            {
+                SetPiece(move.To, move.Promotion.Value);
+            }
         }
 
         private Move ParsePawnMove(string move, bool white, bool kill)
@@ -150,31 +164,44 @@ namespace PGN2ABK.Board
             var relativeFile = kill ? targetMove[0] > move[0] ? 1 : -1 : 0;
             var shortPushFrom = targetPosition - new Position(relativeFile, 1 * sign);
             var longPushFrom = targetPosition - new Position(relativeFile, 2 * sign);
+            var enPassant = false;
 
             if (kill && GetPiece(targetPosition) == PieceType.None)
             {
-                // Check en-passant
+                // Check en passant
                 var enemyPawn = white ? PieceType.BPawn : PieceType.WPawn;
                 var enemyPawnPosition = targetPosition - new Position(0, sign);
 
                 if (GetPiece(enemyPawnPosition) != enemyPawn)
                 {
-                    throw new ArgumentException("Kill move \"{move}\" on an empty field", nameof(move));
+                    throw new ArgumentException($"Kill move \"{move}\" on an empty field", nameof(move));
                 }
+
+                enPassant = true;
             }
 
             if (!kill && GetPiece(targetPosition) != PieceType.None)
             {
-                throw new ArgumentException("Pawn move \"{move}\" on an non empty field", nameof(move));
+                throw new ArgumentException($"Pawn move \"{move}\" on an non empty field", nameof(move));
             }
 
             if (GetPiece(shortPushFrom) == targetPiece)
             {
-                return new Move(shortPushFrom, targetPosition, 5);
+                return new Move
+                {
+                    From = shortPushFrom,
+                    To = targetPosition,
+                    EnPassant = enPassant
+                };
             }
             else if (GetPiece(longPushFrom) == targetPiece)
             {
-                return new Move(longPushFrom, targetPosition, 5);
+                return new Move
+                {
+                    From = longPushFrom,
+                    To = targetPosition,
+                    EnPassant = enPassant
+                };
             }
 
             throw new ArgumentException($"Can't parse \"{move}\" (pawn push)", nameof(move));
@@ -188,15 +215,33 @@ namespace PGN2ABK.Board
 
             if (kill && GetPiece(sourcePosition) == PieceType.None)
             {
-                throw new ArgumentException("Kill move \"{move}\" on an empty field", nameof(move));
+                throw new ArgumentException($"Kill move \"{move}\" on an empty field", nameof(move));
             }
 
             if (!kill && GetPiece(targetPosition) != PieceType.None)
             {
-                throw new ArgumentException("Pawn move \"{move}\" on an non empty field", nameof(move));
+                throw new ArgumentException($"Piece move \"{move}\" on an non empty field", nameof(move));
             }
 
-            return new Move(sourcePosition, targetPosition, 5);
+            return new Move
+            {
+                From = sourcePosition,
+                To = targetPosition
+            };
+        }
+
+        private Move ParsePromotion(string move, bool white)
+        {
+            var targetPosition = PositionConverter.FromPgn(move.Substring(0, 2));
+            var pawnPosition = targetPosition - new Position(0, white ? 1 : -1);
+            var promotionPiece = PieceConverter.FromPgn(move[3], white);
+
+            return new Move
+            {
+                From = pawnPosition,
+                To = targetPosition,
+                Promotion = promotionPiece
+            };
         }
 
         private Position GetSourcePosition(string move, Position targetPosition, PieceType piece, bool ambiguity)
