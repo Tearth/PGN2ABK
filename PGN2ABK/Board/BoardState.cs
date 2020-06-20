@@ -119,8 +119,18 @@ namespace PGN2ABK.Board
                             case PieceType.WKnight:
                             case PieceType.BKnight:
                             {
-                                var delta = (sourcePosition - targetPosition).Abs();
-                                if (delta.X == 2 && delta.Y == 1 || delta.X == 1 && delta.Y == 2)
+                                if (CanMoveAsKnight(sourcePosition, targetPosition))
+                                {
+                                    return sourcePosition;
+                                }
+
+                                break;
+                            }
+
+                            case PieceType.WRook:
+                            case PieceType.BRook:
+                            {
+                                if (CanMoveAsRook(sourcePosition, targetPosition))
                                 {
                                     return sourcePosition;
                                 }
@@ -133,6 +143,47 @@ namespace PGN2ABK.Board
             }
 
             throw new ArgumentException($"Can't parse \"{move}\" (piece move)", nameof(move));
+        }
+
+        private bool CanMoveAsKnight(Position sourcePosition, Position targetPosition)
+        {
+            var delta = (sourcePosition - targetPosition).Abs();
+            return delta.X == 2 && delta.Y == 1 || delta.X == 1 && delta.Y == 2;
+        }
+
+        private bool CanMoveAsRook(Position sourcePosition, Position targetPosition)
+        {
+            if (sourcePosition.X == targetPosition.X && sourcePosition.Y != targetPosition.Y ||
+                sourcePosition.X != targetPosition.X && sourcePosition.Y == targetPosition.Y)
+            {
+                if (!IsPieceBetween(sourcePosition, targetPosition))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsPieceBetween(Position a, Position b)
+        {
+            var stepX = a.X == b.X ? 0 : b.X > a.X ? 1 : -1;
+            var stepY = a.Y == b.Y ? 0 : b.Y > a.Y ? 1 : -1;
+
+            var step = new Position(stepX, stepY);
+            var current = a + step;
+
+            while (current != b)
+            {
+                if (GetPiece(current) != PieceType.None)
+                {
+                    return true;
+                }
+
+                current += step;
+            }
+
+            return false;
         }
     }
 }

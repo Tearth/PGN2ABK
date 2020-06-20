@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography.X509Certificates;
 
 namespace PGN2ABK.Board
 {
@@ -26,6 +27,16 @@ namespace PGN2ABK.Board
         public static Position operator-(Position a, Position b)
         {
             return new Position(a.X - b.X, a.Y - b.Y);
+        }
+
+        public static bool operator ==(Position a, Position b)
+        {
+            return a.X == b.X && a.Y == b.Y;
+        }
+
+        public static bool operator !=(Position a, Position b)
+        {
+            return !(a == b);
         }
     }
 }

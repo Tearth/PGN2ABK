@@ -82,5 +82,43 @@ namespace PGN2ABK.Tests
             Assert.Equal(new Position(3, 6), parsedMove.From);
             Assert.Equal(new Position(5, 5), parsedMove.To);
         }
+
+        [Fact]
+        public void WhiteRookMove()
+        {
+            var board = new BoardState();
+            board.SetPiece(1, 2, PieceType.None);
+
+            var parsedMove = board.ParseMove("Ra4", true);
+            board.ExecuteMove(parsedMove);
+
+            Assert.Equal(new Position(1, 1), parsedMove.From);
+            Assert.Equal(new Position(1, 4), parsedMove.To);
+
+            parsedMove = board.ParseMove("Re4", true);
+            board.ExecuteMove(parsedMove);
+
+            Assert.Equal(new Position(1, 4), parsedMove.From);
+            Assert.Equal(new Position(5, 4), parsedMove.To);
+        }
+
+        [Fact]
+        public void BlackRookMove()
+        {
+            var board = new BoardState();
+            board.SetPiece(1, 7, PieceType.None);
+
+            var parsedMove = board.ParseMove("Ra5", false);
+            board.ExecuteMove(parsedMove);
+
+            Assert.Equal(new Position(1, 8), parsedMove.From);
+            Assert.Equal(new Position(1, 5), parsedMove.To);
+
+            parsedMove = board.ParseMove("Re5", false);
+            board.ExecuteMove(parsedMove);
+
+            Assert.Equal(new Position(1, 5), parsedMove.From);
+            Assert.Equal(new Position(5, 5), parsedMove.To);
+        }
     }
 }
