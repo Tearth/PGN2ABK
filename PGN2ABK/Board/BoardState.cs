@@ -56,7 +56,7 @@ namespace PGN2ABK.Board
 
                 case 3:
                 {
-                    break;
+                    return ParsePieceMove(move, white);
                 }
 
                 case 4:
@@ -66,6 +66,13 @@ namespace PGN2ABK.Board
             }
 
             throw new ArgumentException($"Can't parse \"{move}\"", nameof(move));
+        }
+
+        public void ExecuteMove(Move move)
+        {
+            var pieceType = GetPiece(move.From);
+            SetPiece(move.From, PieceType.None);
+            SetPiece(move.To, pieceType);
         }
 
         private Move ParsePawnPush(string move, bool white)
@@ -87,6 +94,45 @@ namespace PGN2ABK.Board
             }
 
             throw new ArgumentException($"Can't parse \"{move}\" (pawn push)", nameof(move));
+        }
+        
+        private Move ParsePieceMove(string move, bool white)
+        {
+            var pieceType = PieceConverter.FromPgn(move[0], white);
+            var targetPosition = PositionConverter.FromPgn(move.Substring(1, 2));
+            var sourcePosition = GetSourcePosition(move, targetPosition, pieceType);
+
+            return new Move(sourcePosition, targetPosition, 5);
+        }
+
+        private Position GetSourcePosition(string move, Position targetPosition, PieceType piece)
+        {
+            for (var x = 1; x <= 8; x++)
+            {
+                for (var y = 1; y <= 8; y++)
+                {
+                    var sourcePosition = new Position(x, y);
+                    if (GetPiece(sourcePosition) == piece)
+                    {
+                        switch (piece)
+                        {
+                            case PieceType.WKnight:
+                            case PieceType.BKnight:
+                            {
+                                var delta = (sourcePosition - targetPosition).Abs();
+                                if (delta.X == 2 && delta.Y == 1 || delta.X == 1 && delta.Y == 2)
+                                {
+                                    return sourcePosition;
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            throw new ArgumentException($"Can't parse \"{move}\" (piece move)", nameof(move));
         }
     }
 }

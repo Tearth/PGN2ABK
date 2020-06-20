@@ -1,4 +1,6 @@
-﻿namespace PGN2ABK.Board
+﻿using System;
+
+namespace PGN2ABK.Board
 {
     public struct Position
     {
@@ -9,6 +11,11 @@
         {
             X = x;
             Y = y;
+        }
+
+        public Position Abs()
+        {
+            return new Position(Math.Abs(X), Math.Abs(Y));
         }
 
         public static Position operator+(Position a, Position b)

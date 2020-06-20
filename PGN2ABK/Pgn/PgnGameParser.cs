@@ -15,6 +15,8 @@ namespace PGN2ABK.Pgn
             foreach (var rawMove in moves)
             {
                 var parsedMove = board.ParseMove(rawMove, white);
+                board.ExecuteMove(parsedMove);
+
                 white = !white;
             }
 
