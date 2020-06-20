@@ -127,6 +127,17 @@ namespace PGN2ABK.Board
                                 break;
                             }
 
+                            case PieceType.WBishop:
+                            case PieceType.BBishop:
+                            {
+                                if (CanMoveAsBishop(sourcePosition, targetPosition))
+                                {
+                                    return sourcePosition;
+                                }
+
+                                break;
+                            }
+
                             case PieceType.WRook:
                             case PieceType.BRook:
                             {
@@ -149,6 +160,12 @@ namespace PGN2ABK.Board
         {
             var delta = (sourcePosition - targetPosition).Abs();
             return delta.X == 2 && delta.Y == 1 || delta.X == 1 && delta.Y == 2;
+        }
+
+        private bool CanMoveAsBishop(Position sourcePosition, Position targetPosition)
+        {
+            var delta = (sourcePosition - targetPosition).Abs();
+            return delta.X == delta.Y;
         }
 
         private bool CanMoveAsRook(Position sourcePosition, Position targetPosition)

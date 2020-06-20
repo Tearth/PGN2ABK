@@ -84,6 +84,46 @@ namespace PGN2ABK.Tests
         }
 
         [Fact]
+        public void WhiteBishopMove()
+        {
+            var board = new BoardState();
+            board.SetPiece(4, 2, PieceType.None);
+            board.SetPiece(5, 2, PieceType.None);
+
+            var parsedMove = board.ParseMove("Bf4", true);
+            board.ExecuteMove(parsedMove);
+
+            Assert.Equal(new Position(3, 1), parsedMove.From);
+            Assert.Equal(new Position(6, 4), parsedMove.To);
+
+            parsedMove = board.ParseMove("Bc4", true);
+            board.ExecuteMove(parsedMove);
+
+            Assert.Equal(new Position(6, 1), parsedMove.From);
+            Assert.Equal(new Position(3, 4), parsedMove.To);
+        }
+
+        [Fact]
+        public void BlackBishopMove()
+        {
+            var board = new BoardState();
+            board.SetPiece(4, 7, PieceType.None);
+            board.SetPiece(5, 7, PieceType.None);
+
+            var parsedMove = board.ParseMove("Bf5", false);
+            board.ExecuteMove(parsedMove);
+
+            Assert.Equal(new Position(3, 8), parsedMove.From);
+            Assert.Equal(new Position(6, 5), parsedMove.To);
+
+            parsedMove = board.ParseMove("Bc5", false);
+            board.ExecuteMove(parsedMove);
+
+            Assert.Equal(new Position(6, 8), parsedMove.From);
+            Assert.Equal(new Position(3, 5), parsedMove.To);
+        }
+
+        [Fact]
         public void WhiteRookMove()
         {
             var board = new BoardState();
