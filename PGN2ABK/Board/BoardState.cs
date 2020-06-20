@@ -92,7 +92,7 @@ namespace PGN2ABK.Board
                 case 5 when move == "O-O-O":
                 {
                     var kingPosition = white ? new Position(5, 1) : new Position(5, 8);
-                    return new Move(kingPosition, kingPosition - new Position(3, 0), 5);
+                    return new Move(kingPosition, kingPosition - new Position(2, 0), 5);
                 }
             }
 
@@ -102,6 +102,19 @@ namespace PGN2ABK.Board
         public void ExecuteMove(Move move)
         {
             var pieceType = GetPiece(move.From);
+            if (pieceType == PieceType.WKing || pieceType == PieceType.BKing)
+            {
+                if (Math.Abs(move.From.X - move.To.X) == 2)
+                {
+                    var castlePosition = new Position(move.From.X < move.To.X ? 8 : 1, move.From.Y);
+                    var castleTargetPosition = castlePosition + new Position(move.From.X < move.To.X ? -2 : 3, 0);
+                    var castlePieceType = GetPiece(castlePosition);
+
+                    SetPiece(castlePosition, PieceType.None);
+                    SetPiece(castleTargetPosition, castlePieceType);
+                }
+            }
+
             SetPiece(move.From, PieceType.None);
             SetPiece(move.To, pieceType);
         }

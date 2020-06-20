@@ -224,5 +224,73 @@ namespace PGN2ABK.Tests
             Assert.Equal(new Position(5, 8), parsedMove.From);
             Assert.Equal(new Position(5, 7), parsedMove.To);
         }
+
+        [Fact]
+        public void WhiteShortCastling()
+        {
+            var board = new BoardState();
+            board.SetPiece(6, 1, PieceType.None);
+            board.SetPiece(7, 1, PieceType.None);
+
+            var parsedMove = board.ParseMove("O-O", true);
+            board.ExecuteMove(parsedMove);
+
+            Assert.Equal(PieceType.None, board.GetPiece(5, 1));
+            Assert.Equal(PieceType.WRook, board.GetPiece(6, 1));
+            Assert.Equal(PieceType.WKing, board.GetPiece(7, 1));
+            Assert.Equal(PieceType.None, board.GetPiece(8, 1));
+        }
+
+        [Fact]
+        public void BlackShortCastling()
+        {
+            var board = new BoardState();
+            board.SetPiece(6, 1, PieceType.None);
+            board.SetPiece(7, 1, PieceType.None);
+
+            var parsedMove = board.ParseMove("O-O", false);
+            board.ExecuteMove(parsedMove);
+
+            Assert.Equal(PieceType.None, board.GetPiece(5, 8));
+            Assert.Equal(PieceType.BRook, board.GetPiece(6, 8));
+            Assert.Equal(PieceType.BKing, board.GetPiece(7, 8));
+            Assert.Equal(PieceType.None, board.GetPiece(8, 8));
+        }
+
+        [Fact]
+        public void WhiteLongCastling()
+        {
+            var board = new BoardState();
+            board.SetPiece(2, 1, PieceType.None);
+            board.SetPiece(3, 1, PieceType.None);
+            board.SetPiece(4, 1, PieceType.None);
+
+            var parsedMove = board.ParseMove("O-O-O", true);
+            board.ExecuteMove(parsedMove);
+
+            Assert.Equal(PieceType.None, board.GetPiece(1, 1));
+            Assert.Equal(PieceType.None, board.GetPiece(2, 1));
+            Assert.Equal(PieceType.WKing, board.GetPiece(3, 1));
+            Assert.Equal(PieceType.WRook, board.GetPiece(4, 1));
+            Assert.Equal(PieceType.None, board.GetPiece(5, 1));
+        }
+
+        [Fact]
+        public void BlackLongCastling()
+        {
+            var board = new BoardState();
+            board.SetPiece(2, 8, PieceType.None);
+            board.SetPiece(3, 8, PieceType.None);
+            board.SetPiece(4, 8, PieceType.None);
+
+            var parsedMove = board.ParseMove("O-O-O", false);
+            board.ExecuteMove(parsedMove);
+
+            Assert.Equal(PieceType.None, board.GetPiece(1, 8));
+            Assert.Equal(PieceType.None, board.GetPiece(2, 8));
+            Assert.Equal(PieceType.BKing, board.GetPiece(3, 8));
+            Assert.Equal(PieceType.BRook, board.GetPiece(4, 8));
+            Assert.Equal(PieceType.None, board.GetPiece(5, 8));
+        }
     }
 }
