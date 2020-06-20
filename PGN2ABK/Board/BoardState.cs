@@ -48,6 +48,8 @@ namespace PGN2ABK.Board
         {
             move = move.Replace("#", "");
             move = move.Replace("+", "");
+            move = move.Replace("?", "");
+            move = move.Replace("!", "");
 
             switch (move.Length)
             {
@@ -78,7 +80,7 @@ namespace PGN2ABK.Board
                 // Promotion
                 case 4 when move[2] == '=':
                 {
-                    return ParsePromotion(move, white);
+                    return ParsePromotion(move, white, false);
                 }
 
                 // Pawn kill
@@ -121,6 +123,18 @@ namespace PGN2ABK.Board
                 case 5 when move[2] != 'x':
                 {
                     return ParsePieceMove(move, white, false, true);
+                }
+
+                // Promotion with kill
+                case 6 when move[1] == 'x' && move[4] == '=':
+                {
+                    return ParsePromotion(move, white, true);
+                }
+
+                // Piece kill from the specified rank
+                case 6 when move[3] == 'x':
+                {
+                    return ParsePieceMove(move, white, true, true);
                 }
             }
 
@@ -230,18 +244,34 @@ namespace PGN2ABK.Board
             };
         }
 
-        private Move ParsePromotion(string move, bool white)
+        private Move ParsePromotion(string move, bool white, bool kill)
         {
-            var targetPosition = PositionConverter.FromPgn(move.Substring(0, 2));
-            var pawnPosition = targetPosition - new Position(0, white ? 1 : -1);
-            var promotionPiece = PieceConverter.FromPgn(move[3], white);
-
-            return new Move
+            if (!kill)
             {
-                From = pawnPosition,
-                To = targetPosition,
-                Promotion = promotionPiece
-            };
+                var targetPosition = PositionConverter.FromPgn(move.Substring(0, 2));
+                var sourcePosition = targetPosition - new Position(0, white ? 1 : -1);
+                var promotionPiece = PieceConverter.FromPgn(move[3], white);
+
+                return new Move
+                {
+                    From = sourcePosition,
+                    To = targetPosition,
+                    Promotion = promotionPiece
+                };
+            }
+            else
+            {
+                var targetPosition = PositionConverter.FromPgn(move.Substring(2, 2));
+                var sourcePosition = new Position(move[0] - 'a' + 1, white ? 7 : 2);
+                var promotionPiece = PieceConverter.FromPgn(move[5], white);
+
+                return new Move
+                {
+                    From = sourcePosition,
+                    To = targetPosition,
+                    Promotion = promotionPiece
+                };
+            }
         }
 
         private Position GetSourcePosition(string move, Position targetPosition, PieceType piece, bool ambiguity)
@@ -254,7 +284,7 @@ namespace PGN2ABK.Board
 
                     if (ambiguity)
                     {
-                        if (move[1] == move[3] && move[2] != 'x')
+                        if (char.IsDigit(move[2]) && char.IsDigit(move[^1]))
                         {
                             var rank = move[2] - '0';
                             if (rank != y)
@@ -342,7 +372,12 @@ namespace PGN2ABK.Board
         private bool CanMoveAsBishop(Position sourcePosition, Position targetPosition)
         {
             var delta = (sourcePosition - targetPosition).Abs();
-            return delta.X == delta.Y;
+            if (delta.X == delta.Y)
+            {
+                return !IsPieceBetween(sourcePosition, targetPosition);
+            }
+
+            return false;
         }
 
         private bool CanMoveAsRook(Position sourcePosition, Position targetPosition)

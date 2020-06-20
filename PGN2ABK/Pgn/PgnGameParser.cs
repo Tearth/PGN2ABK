@@ -11,9 +11,27 @@ namespace PGN2ABK.Pgn
             var board = new BoardState();
             var moves = SplitGameIntoMoves(game);
             var white = true;
+            var skip = false;
 
             foreach (var rawMove in moves.Take(moves.Count() - 1))
             {
+                if (rawMove == "{")
+                {
+                    skip = true;
+                    continue;
+                }
+
+                if (rawMove == "}")
+                {
+                    skip = false;
+                    continue;
+                }
+
+                if (skip)
+                {
+                    continue;
+                }
+
                 var parsedMove = board.ParseMove(rawMove, white);
                 board.ExecuteMove(parsedMove);
 
