@@ -5,12 +5,12 @@ namespace PGN2ABK.Pgn
 {
     public class PgnEntry
     {
-        public bool WhiteWon { get; set; }
+        public GameResult GameResult { get; set; }
         public IEnumerable<Move> Moves { get; set; }
 
-        public PgnEntry(bool whiteWon, IEnumerable<Move> moves)
+        public PgnEntry(GameResult whiteWon, IEnumerable<Move> moves)
         {
-            WhiteWon = whiteWon;
+            GameResult = whiteWon;
             Moves = moves;
         }
     }

@@ -8,6 +8,7 @@ namespace PGN2ABK.Pgn
         public Move Move { get; set; }
         public List<IntermediateEntry> Children { get; set; }
         public int WhiteWins { get; set; }
+        public int BlackWins { get; set; }
 
         public IntermediateEntry(Move move)
         {

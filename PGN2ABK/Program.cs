@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using CommandLine;
 using PGN2ABK.CommandLine;
@@ -15,7 +16,12 @@ namespace PGN2ABK
                 var parser = new PgnParser();
                 var input = File.ReadLines(options.Input);
 
+                Console.WriteLine("Start");
+                var stopWatch = Stopwatch.StartNew();
                 parser.Parse(input);
+                var elapsed = stopWatch.Elapsed.TotalSeconds;
+                Console.WriteLine($"Stop: {elapsed}");
+
                 Console.Read();
             });
         }

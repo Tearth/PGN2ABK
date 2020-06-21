@@ -10,5 +10,15 @@
         public PieceType? Promotion { get; set; }
 
         public static Move Zero = new Move();
+
+        public static bool operator ==(Move a, Move b)
+        {
+            return a.From == b.From && a.To == b.To;
+        }
+
+        public static bool operator !=(Move a, Move b)
+        {
+            return !(a.From == b.From && a.To == b.To);
+        }
     }
 }
