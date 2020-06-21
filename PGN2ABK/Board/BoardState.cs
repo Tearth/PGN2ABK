@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Text;
 using PGN2ABK.Helpers;
 
 namespace PGN2ABK.Board
@@ -185,6 +186,30 @@ namespace PGN2ABK.Board
             }
         }
 
+        public string GetDebugVisualization()
+        {
+            var stringBuilder = new StringBuilder();
+            for (var y = 7; y >= 0; y--)
+            {
+                for (var x = 0; x < 8; x++)
+                {
+                    if (_state[y, x] == PieceType.None)
+                    {
+                        stringBuilder.Append(". ");
+                    }
+                    else
+                    {
+                        stringBuilder.Append(PieceConverter.ToSymbol(_state[y, x]));
+                        stringBuilder.Append(" ");
+                    }
+                }
+
+                stringBuilder.Append("\r\n");
+            }
+
+            return stringBuilder.ToString();
+        }
+
         private Move ParsePawnMove(string move, bool white, bool kill)
         {
             var targetMove = kill ? move.Substring(2, 2) : move;
@@ -293,6 +318,14 @@ namespace PGN2ABK.Board
 
         private Position GetSourcePosition(string move, Position targetPosition, PieceType piece, bool white, bool ambiguity)
         {
+            if (ambiguity)
+            {
+                if (char.IsDigit(move[2]) && char.IsDigit(move[^1]))
+                {
+                    return PositionConverter.FromPgn(move.Substring(1, 2));
+                }
+            }
+
             for (var x = 1; x <= 8; x++)
             {
                 for (var y = 1; y <= 8; y++)
@@ -301,21 +334,10 @@ namespace PGN2ABK.Board
 
                     if (ambiguity)
                     {
-                        if (char.IsDigit(move[2]) && char.IsDigit(move[^1]))
+                        var file = move[1] - 'a' + 1;
+                        if (file != x)
                         {
-                            var rank = move[2] - '0';
-                            if (rank != y)
-                            {
-                                continue;
-                            }
-                        }
-                        else
-                        {
-                            var file = move[1] - 'a' + 1;
-                            if (file != x)
-                            {
-                                continue;
-                            }
+                            continue;
                         }
                     }
 

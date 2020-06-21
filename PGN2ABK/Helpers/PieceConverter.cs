@@ -18,5 +18,27 @@ namespace PGN2ABK.Helpers
 
             throw new ArgumentException($"Can't parse \"{symbol}\" piece symbol", nameof(symbol));
         }
+
+        public static char ToSymbol(PieceType type)
+        {
+            switch (type)
+            {
+                case PieceType.WPawn: return 'p';
+                case PieceType.WKnight: return 'n';
+                case PieceType.WBishop: return 'b';
+                case PieceType.WRook: return 'r';
+                case PieceType.WQueen: return 'q';
+                case PieceType.WKing: return 'k';
+
+                case PieceType.BPawn: return 'P';
+                case PieceType.BKnight: return 'N';
+                case PieceType.BBishop: return 'B';
+                case PieceType.BRook: return 'R';
+                case PieceType.BQueen: return 'Q';
+                case PieceType.BKing: return 'K';
+            }
+
+            return (char)0;
+        }
     }
 }
