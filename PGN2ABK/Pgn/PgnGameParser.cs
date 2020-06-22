@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using PGN2ABK.Board;
 
@@ -6,27 +7,36 @@ namespace PGN2ABK.Pgn
 {
     public class PgnGameParser
     {
-        public PgnEntry Parse(string game)
+        public PgnEntry Parse(string game, int maxPlies)
         {
             var board = new BoardState();
             var moves = SplitGameIntoMoves(game);
+            var maxMoves = Math.Min(moves.Count, maxPlies);
             var white = true;
             var skip = false;
 
             var parsedMoves = new List<Move>();
             var gameResult = GetGameResult(moves[^1]);
 
-            for (var i = 0; i < moves.Count - 1; i++)
+            for (var i = 0; i < maxMoves; i++)
             {
+                // Begin of comment
                 if (moves[i] == "{")
                 {
                     skip = true;
                     continue;
                 }
 
+                // End of comment
                 if (moves[i] == "}")
                 {
                     skip = false;
+                    continue;
+                }
+
+                // Game result
+                if (moves[i] == "1-0" || moves[i] == "0-1" || moves[i] == "1/2-1/2")
+                {
                     continue;
                 }
 

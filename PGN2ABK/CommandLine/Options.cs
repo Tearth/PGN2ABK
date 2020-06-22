@@ -9,5 +9,11 @@ namespace PGN2ABK.CommandLine
 
         [Option('o', "output", Required = true, HelpText = "ABK output file.")]
         public string Output { get; set; }
+
+        [Option('p', "plies", Required = false, HelpText = "Maximal number of plies to parse.")]
+        public int PliesCount { get; set; }
+
+        [Option('e', "elo", Required = false, HelpText = "Minimal average ELO of players to parse the game.")]
+        public int MinElo { get; set; }
     }
 }

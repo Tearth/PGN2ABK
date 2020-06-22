@@ -13,14 +13,14 @@ namespace PGN2ABK.Pgn
             _gameParser = new PgnGameParser();
         }
 
-        public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input)
+        public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input, int maxPlies)
         {
             var root = new IntermediateEntry(Move.Zero);
             var currentNode = root;
 
             foreach (var line in input.Where(p => p.StartsWith('1')))
             {
-                var pgnEntry = _gameParser.Parse(line);
+                var pgnEntry = _gameParser.Parse(line, maxPlies);
                 AttachMoves(currentNode, pgnEntry);
 
                 // Reset root entry
