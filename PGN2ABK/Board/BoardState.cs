@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 using PGN2ABK.Helpers;
 
 namespace PGN2ABK.Board
 {
     public class BoardState
     {
-        private PieceType[,] _state;
+        private readonly PieceType[,] _state;
 
         public BoardState()
         {
@@ -64,11 +64,7 @@ namespace PGN2ABK.Board
 
         public Move ParseMove(string move, bool white)
         {
-            move = move.Replace("#", "");
-            move = move.Replace("+", "");
-            move = move.Replace("?", "");
-            move = move.Replace("!", "");
-
+            move = RemoveUnusedCharsFromMove(move);
             switch (move.Length)
             {
                 // Pawn move
@@ -159,8 +155,9 @@ namespace PGN2ABK.Board
 
             if (shortCastling || longCastling)
             {
-                var castlePosition = new Position(shortCastling ? 8 : 1, move.From.Y);
-                var castleTargetPosition = castlePosition + new Position(shortCastling ? -2 : 3, 0);
+                var castlePosition = shortCastling ? new Position((sbyte)8, move.From.Y) : new Position((sbyte)1, move.From.Y);
+                var castleOffset = shortCastling ? new Position(-2, 0) : new Position(3, 0);
+                var castleTargetPosition = castlePosition + castleOffset;
                 var castlePieceType = GetPiece(castlePosition);
 
                 SetPiece(castlePosition, PieceType.None);
@@ -173,12 +170,7 @@ namespace PGN2ABK.Board
             }
 
             SetPiece(move.From, PieceType.None);
-            SetPiece(move.To, pieceType);
-
-            if (promotion)
-            {
-                SetPiece(move.To, move.PromotionPiece);
-            }
+            SetPiece(move.To, promotion ? move.PromotionPiece : pieceType);
         }
 
         public string GetDebugVisualization()
@@ -205,8 +197,45 @@ namespace PGN2ABK.Board
             return stringBuilder.ToString();
         }
 
+        private unsafe string RemoveUnusedCharsFromMove(string move)
+        {
+            // Unsafe version is way faster than string.Replace and Regex.Replace
+            var length = move.Length;
+            char* newChars = stackalloc char[length];
+            char* currentChar = newChars;
+
+            for (var i = 0; i < length; ++i)
+            {
+                var c = move[i];
+                switch (c)
+                {
+                    case '#':
+                    case '+':
+                    case '?':
+                    case '!':
+                    {
+                        continue;
+                    }
+                    default:
+                    {
+                        *currentChar++ = c;
+                        break;
+                    }
+                }
+            }
+
+            return new string(newChars, 0, (int)(currentChar - newChars));
+
+            // Screw string.Replace, it litters my memory as hell
+            // return move.Replace("#", "").Replace("+", "").Replace("?", "").Replace("!", "");
+            
+            // Screw Regex, it's slow as hell
+            // return Regex.Replace(move, @"[\#\|\+|\?|\!]", "");
+        }
+
         private Move ParsePawnMove(string move, bool white, bool kill)
         {
+            // exd4 when kill, otherwise e4
             var targetMove = kill ? move.Substring(2, 2) : move;
             var targetPosition = PositionConverter.FromPgn(targetMove);
             var targetPiece = white ? PieceType.WPawn : PieceType.BPawn;
@@ -215,7 +244,7 @@ namespace PGN2ABK.Board
             var relativeFile = kill ? targetMove[0] > move[0] ? 1 : -1 : 0;
             var shortPushFrom = targetPosition - new Position(relativeFile, 1 * sign);
             var longPushFrom = targetPosition - new Position(relativeFile, 2 * sign);
-            var enPassant = false;
+            var flags = MoveFlags.None;
 
             if (kill && GetPiece(targetPosition) == PieceType.None)
             {
@@ -228,7 +257,7 @@ namespace PGN2ABK.Board
                     throw new ArgumentException($"Kill move \"{move}\" on an empty field", nameof(move));
                 }
 
-                enPassant = true;
+                flags = MoveFlags.EnPassant;
             }
 
             if (!kill && GetPiece(targetPosition) != PieceType.None)
@@ -238,11 +267,11 @@ namespace PGN2ABK.Board
 
             if (GetPiece(shortPushFrom) == targetPiece)
             {
-                return new Move(shortPushFrom, targetPosition, enPassant ? MoveFlags.EnPassant : MoveFlags.None);
+                return new Move(shortPushFrom, targetPosition, flags);
             }
             else if (GetPiece(longPushFrom) == targetPiece)
             {
-                return new Move(longPushFrom, targetPosition, enPassant ? MoveFlags.EnPassant : MoveFlags.None);
+                return new Move(longPushFrom, targetPosition, flags);
             }
 
             throw new ArgumentException($"Can't parse \"{move}\" (pawn push)", nameof(move));
@@ -291,6 +320,7 @@ namespace PGN2ABK.Board
         {
             if (ambiguity)
             {
+                // Rank ambiguity, Rg6g7
                 if (char.IsDigit(move[2]) && char.IsDigit(move[^1]))
                 {
                     return PositionConverter.FromPgn(move.Substring(1, 2));
@@ -305,6 +335,7 @@ namespace PGN2ABK.Board
 
                     if (ambiguity)
                     {
+                        // File ambiguity
                         var file = move[1] - 'a' + 1;
                         if (file != x)
                         {
@@ -436,6 +467,7 @@ namespace PGN2ABK.Board
             var sourceDelta = kingPosition - sourcePosition;
             var sourceDeltaAbs = sourceDelta.Abs();
 
+            // Check if king is not on the same rank/file or diagonal as the piece
             if (sourceDeltaAbs.X != sourceDeltaAbs.Y && sourceDelta.X != 0 && sourceDelta.Y != 0)
             {
                 return false;
