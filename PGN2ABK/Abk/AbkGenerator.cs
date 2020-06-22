@@ -13,10 +13,10 @@ namespace PGN2ABK.Abk
         public void Save(string path, IEnumerable<IntermediateEntry> intermediateEntries)
         {
             var entriesQueue = new Queue<IntermediateEntry>(intermediateEntries);
-            var siblingsCountQueue = new Queue<int>(new [] { intermediateEntries.Count() });
-            var currentSiblingsCount = intermediateEntries.Count();
+            var siblingsCountQueue = new Queue<int>();
+            var currentSiblingsCount = intermediateEntries.Count() - 1;
             var currentIndex = 900;
-            var freeIndex = currentIndex + currentSiblingsCount;
+            var freeIndex = currentIndex + intermediateEntries.Count();
             var white = true;
             var ply = 0;
 
@@ -32,12 +32,12 @@ namespace PGN2ABK.Abk
                     if (intermediateEntry.Children.Count > 0)
                     {
                         intermediateEntry.Children.ForEach(p => entriesQueue.Enqueue(p));
-                        siblingsCountQueue.Enqueue(intermediateEntry.Children.Count);
+                        siblingsCountQueue.Enqueue(intermediateEntry.Children.Count - 1);
                         freeIndex += intermediateEntry.Children.Count;
                     }
 
                     currentSiblingsCount--;
-                    if (currentSiblingsCount < 0)
+                    if (currentSiblingsCount < 0 && entriesQueue.Count > 0)
                     {
                         currentSiblingsCount = siblingsCountQueue.Dequeue();
                     }

@@ -26,7 +26,7 @@ namespace PGN2ABK.Board
 
         public byte ToIndex()
         {
-            return (byte)((X + Y * 8) - 1);
+            return (byte)((X - 1) + (Y - 1) * 8);
         }
 
         public bool IsValid()
