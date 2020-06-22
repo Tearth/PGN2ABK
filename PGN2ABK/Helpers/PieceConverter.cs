@@ -5,7 +5,7 @@ namespace PGN2ABK.Helpers
 {
     public static class PieceConverter
     {
-        public static PieceType FromPgn(char symbol, bool white)
+        public static PieceType FromSymbol(char symbol, bool white)
         {
             switch (symbol)
             {
@@ -16,7 +16,7 @@ namespace PGN2ABK.Helpers
                 case 'K': return white ? PieceType.WKing : PieceType.BKing;
             }
 
-            throw new ArgumentException($"Can't parse \"{symbol}\" piece symbol", nameof(symbol));
+            throw new ArgumentException($"Unrecognized piece symbol: \"{symbol}\"", nameof(symbol));
         }
 
         public static char ToSymbol(PieceType type)
@@ -38,7 +38,7 @@ namespace PGN2ABK.Helpers
                 case PieceType.BKing: return 'K';
             }
 
-            return (char)0;
+            throw new ArgumentException($"Unrecognized piece type: \"{type}\"", nameof(type));
         }
     }
 }

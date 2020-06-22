@@ -237,7 +237,7 @@ namespace PGN2ABK.Board
         {
             // exd4 when kill, otherwise e4
             var targetMove = kill ? move.Substring(2, 2) : move;
-            var targetPosition = PositionConverter.FromPgn(targetMove);
+            var targetPosition = PositionConverter.FromNotation(targetMove);
             var targetPiece = white ? PieceType.WPawn : PieceType.BPawn;
             var sign = white ? 1 : -1;
 
@@ -279,8 +279,8 @@ namespace PGN2ABK.Board
         
         private Move ParsePieceMove(string move, bool white, bool kill, bool ambiguity)
         {
-            var pieceType = PieceConverter.FromPgn(move[0], white);
-            var targetPosition = PositionConverter.FromPgn(move.Substring(move.Length - 2, 2));
+            var pieceType = PieceConverter.FromSymbol(move[0], white);
+            var targetPosition = PositionConverter.FromNotation(move.Substring(move.Length - 2, 2));
             var sourcePosition = GetSourcePosition(move, targetPosition, pieceType, white, ambiguity);
 
             if (kill && GetPiece(sourcePosition) == PieceType.None)
@@ -300,17 +300,17 @@ namespace PGN2ABK.Board
         {
             if (!kill)
             {
-                var targetPosition = PositionConverter.FromPgn(move.Substring(0, 2));
+                var targetPosition = PositionConverter.FromNotation(move.Substring(0, 2));
                 var sourcePosition = targetPosition - new Position(0, white ? 1 : -1);
-                var promotionPiece = PieceConverter.FromPgn(move[3], white);
+                var promotionPiece = PieceConverter.FromSymbol(move[3], white);
 
                 return new Move(sourcePosition, targetPosition, MoveFlags.Promotion, promotionPiece);
             }
             else
             {
-                var targetPosition = PositionConverter.FromPgn(move.Substring(2, 2));
+                var targetPosition = PositionConverter.FromNotation(move.Substring(2, 2));
                 var sourcePosition = new Position(move[0] - 'a' + 1, white ? 7 : 2);
-                var promotionPiece = PieceConverter.FromPgn(move[5], white);
+                var promotionPiece = PieceConverter.FromSymbol(move[5], white);
 
                 return new Move(sourcePosition, targetPosition, MoveFlags.Promotion, promotionPiece);
             }
@@ -323,7 +323,7 @@ namespace PGN2ABK.Board
                 // Rank ambiguity, Rg6g7
                 if (char.IsDigit(move[2]) && char.IsDigit(move[^1]))
                 {
-                    return PositionConverter.FromPgn(move.Substring(1, 2));
+                    return PositionConverter.FromNotation(move.Substring(1, 2));
                 }
             }
 
