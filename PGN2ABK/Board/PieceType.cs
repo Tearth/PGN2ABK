@@ -1,6 +1,6 @@
 ﻿namespace PGN2ABK.Board
 {
-    public enum PieceType
+    public enum PieceType : byte
     {
         None,
         WPawn,

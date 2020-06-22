@@ -81,12 +81,7 @@ namespace PGN2ABK.Board
                 case 3 when move == "O-O":
                 {
                     var kingPosition = white ? new Position(5, 1) : new Position(5, 8);
-                    return new Move
-                    {
-                        From = kingPosition,
-                        To = kingPosition + new Position(2, 0),
-                        ShortCastling = true
-                    };
+                    return new Move(kingPosition, kingPosition + new Position(2, 0), MoveFlags.ShortCastling);
                 }
 
                 // Piece move
@@ -123,12 +118,7 @@ namespace PGN2ABK.Board
                 case 5 when move == "O-O-O":
                 {
                     var kingPosition = white ? new Position(5, 1) : new Position(5, 8);
-                    return new Move
-                    {
-                        From = kingPosition,
-                        To = kingPosition - new Position(2, 0),
-                        LongCastling = true
-                    };
+                    return new Move(kingPosition, kingPosition - new Position(2, 0), MoveFlags.LongCastling);
                 }
 
                 // Piece kill from the specified line
@@ -162,17 +152,22 @@ namespace PGN2ABK.Board
         public void ExecuteMove(Move move)
         {
             var pieceType = GetPiece(move.From);
-            if (move.ShortCastling || move.LongCastling)
+            var shortCastling = (move.Flags & MoveFlags.ShortCastling) != 0;
+            var longCastling = (move.Flags & MoveFlags.LongCastling) != 0;
+            var enPassant = (move.Flags & MoveFlags.EnPassant) != 0;
+            var promotion = (move.Flags & MoveFlags.Promotion) != 0;
+
+            if (shortCastling || longCastling)
             {
-                var castlePosition = new Position(move.ShortCastling ? 8 : 1, move.From.Y);
-                var castleTargetPosition = castlePosition + new Position(move.ShortCastling ? -2 : 3, 0);
+                var castlePosition = new Position(shortCastling ? 8 : 1, move.From.Y);
+                var castleTargetPosition = castlePosition + new Position(shortCastling ? -2 : 3, 0);
                 var castlePieceType = GetPiece(castlePosition);
 
                 SetPiece(castlePosition, PieceType.None);
                 SetPiece(castleTargetPosition, castlePieceType);
             }
             
-            if (move.EnPassant)
+            if (enPassant)
             {
                 SetPiece(new Position(move.To.X, move.From.Y), PieceType.None);
             }
@@ -180,9 +175,9 @@ namespace PGN2ABK.Board
             SetPiece(move.From, PieceType.None);
             SetPiece(move.To, pieceType);
 
-            if (move.Promotion != null)
+            if (promotion)
             {
-                SetPiece(move.To, move.Promotion.Value);
+                SetPiece(move.To, move.PromotionPiece);
             }
         }
 
@@ -243,21 +238,11 @@ namespace PGN2ABK.Board
 
             if (GetPiece(shortPushFrom) == targetPiece)
             {
-                return new Move
-                {
-                    From = shortPushFrom,
-                    To = targetPosition,
-                    EnPassant = enPassant
-                };
+                return new Move(shortPushFrom, targetPosition, enPassant ? MoveFlags.EnPassant : MoveFlags.None);
             }
             else if (GetPiece(longPushFrom) == targetPiece)
             {
-                return new Move
-                {
-                    From = longPushFrom,
-                    To = targetPosition,
-                    EnPassant = enPassant
-                };
+                return new Move(longPushFrom, targetPosition, enPassant ? MoveFlags.EnPassant : MoveFlags.None);
             }
 
             throw new ArgumentException($"Can't parse \"{move}\" (pawn push)", nameof(move));
@@ -279,11 +264,7 @@ namespace PGN2ABK.Board
                 throw new ArgumentException($"Piece move \"{move}\" on an non empty field", nameof(move));
             }
 
-            return new Move
-            {
-                From = sourcePosition,
-                To = targetPosition
-            };
+            return new Move(sourcePosition, targetPosition);
         }
 
         private Move ParsePromotion(string move, bool white, bool kill)
@@ -294,12 +275,7 @@ namespace PGN2ABK.Board
                 var sourcePosition = targetPosition - new Position(0, white ? 1 : -1);
                 var promotionPiece = PieceConverter.FromPgn(move[3], white);
 
-                return new Move
-                {
-                    From = sourcePosition,
-                    To = targetPosition,
-                    Promotion = promotionPiece
-                };
+                return new Move(sourcePosition, targetPosition, MoveFlags.Promotion, promotionPiece);
             }
             else
             {
@@ -307,12 +283,7 @@ namespace PGN2ABK.Board
                 var sourcePosition = new Position(move[0] - 'a' + 1, white ? 7 : 2);
                 var promotionPiece = PieceConverter.FromPgn(move[5], white);
 
-                return new Move
-                {
-                    From = sourcePosition,
-                    To = targetPosition,
-                    Promotion = promotionPiece
-                };
+                return new Move(sourcePosition, targetPosition, MoveFlags.Promotion, promotionPiece);
             }
         }
 

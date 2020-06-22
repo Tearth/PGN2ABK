@@ -1,19 +1,22 @@
 ﻿using System;
-using System.Security.Cryptography.X509Certificates;
 
 namespace PGN2ABK.Board
 {
-    public struct Position
+    public readonly struct Position
     {
-        public int X { get; set; }
-        public int Y { get; set; }
-
+        public sbyte X { get; }
+        public sbyte Y { get; }
         public static Position Zero = new Position(0, 0);
 
-        public Position(int x, int y)
+        public Position(sbyte x, sbyte y)
         {
             X = x;
             Y = y;
+        }
+
+        public Position(int x, int y) : this((sbyte)x, (sbyte)y)
+        {
+
         }
 
         public Position Abs()
@@ -44,6 +47,22 @@ namespace PGN2ABK.Board
         public static bool operator !=(Position a, Position b)
         {
             return !(a == b);
+        }
+
+        public override bool Equals(object obj)
+        {
+            var position = obj as Position?;
+            if (position == null)
+            {
+                return false;
+            }
+
+            return this == position;
+        }
+
+        public override int GetHashCode()
+        {
+            return X + Y * 8;
         }
 
         public override string ToString()
