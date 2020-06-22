@@ -11,6 +11,7 @@ namespace PGN2ABK.Pgn
         public int WhiteWins { get; set; }
         public int BlackWins { get; set; }
         public int Draws { get; set; }
+        public int TotalGames => WhiteWins + BlackWins + Draws;
 
         public IntermediateEntry(Move move)
         {

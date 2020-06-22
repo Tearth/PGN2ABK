@@ -24,6 +24,11 @@ namespace PGN2ABK.Board
             return new Position(Math.Abs(X), Math.Abs(Y));
         }
 
+        public byte ToIndex()
+        {
+            return (byte)((X + Y * 8) - 1);
+        }
+
         public bool IsValid()
         {
             return X >= 1 && X <= 8 && Y >= 1 && Y <= 8;

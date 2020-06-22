@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using CommandLine;
+using PGN2ABK.Abk;
 using PGN2ABK.CommandLine;
 using PGN2ABK.Pgn;
 
@@ -14,11 +15,13 @@ namespace PGN2ABK
             Parser.Default.ParseArguments<Options>(args).WithParsed(options =>
             {
                 var parser = new PgnParser();
+                var abkGenerator = new AbkGenerator();
                 var input = File.ReadLines(options.Input);
 
                 Console.WriteLine("Start");
                 var stopWatch = Stopwatch.StartNew();
                 var intermediateEntries = parser.Parse(input, options.PliesCount, options.MinElo);
+                abkGenerator.Save(options.Output, intermediateEntries);
                 var elapsed = stopWatch.Elapsed.TotalSeconds;
                 Console.WriteLine($"Stop: {elapsed}");
 

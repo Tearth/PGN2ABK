@@ -40,5 +40,42 @@ namespace PGN2ABK.Helpers
 
             throw new ArgumentException($"Unrecognized piece type: \"{type}\"", nameof(type));
         }
+
+        public static byte ToIndex(PieceType pieceType)
+        {
+            switch (pieceType)
+            {
+                case PieceType.None:
+                {
+                    return 0;
+                }
+
+                case PieceType.WRook:
+                case PieceType.BRook:
+                {
+                    return 1;
+                }
+
+                case PieceType.WKnight:
+                case PieceType.BKnight:
+                {
+                    return 2;
+                }
+
+                case PieceType.WBishop:
+                case PieceType.BBishop:
+                {
+                    return 3;
+                }
+
+                case PieceType.WQueen:
+                case PieceType.BQueen:
+                {
+                    return 4;
+                }
+            }
+
+            throw new ArgumentException($"Invalid promotion piece type: \"{pieceType}\"", nameof(pieceType));
+        }
     }
 }
