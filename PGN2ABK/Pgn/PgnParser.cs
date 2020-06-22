@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using PGN2ABK.Board;
 
@@ -13,21 +14,51 @@ namespace PGN2ABK.Pgn
             _gameParser = new PgnGameParser();
         }
 
-        public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input, int maxPlies)
+        public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input, int maxPlies, int minElo)
         {
             var root = new IntermediateEntry(Move.Zero);
             var currentNode = root;
+            var whiteElo = 0;
+            var blackElo = 0;
 
-            foreach (var line in input.Where(p => p.StartsWith('1')))
+            foreach (var line in input)
             {
-                var pgnEntry = _gameParser.Parse(line, maxPlies);
-                AttachMoves(currentNode, pgnEntry);
+                if (line.StartsWith("[WhiteElo"))
+                {
+                    whiteElo = GetElo(line);
+                }
+                else if (line.StartsWith("[BlackElo"))
+                {
+                    blackElo = GetElo(line);
+                }
+                else if (line.StartsWith('1'))
+                {
+                    if ((whiteElo + blackElo) / 2 >= minElo)
+                    {
+                        var pgnEntry = _gameParser.Parse(line, maxPlies);
+                        AttachMoves(currentNode, pgnEntry);
 
-                // Reset root entry
-                currentNode = root;
+                        // Reset root entry
+                        currentNode = root;
+                    }
+                }
             }
 
-            return null;
+            return root.Children;
+        }
+
+        private int GetElo(string line)
+        {
+            var firstQuote = line.IndexOf('"');
+            var lastQuote = line.IndexOf('"', firstQuote + 1);
+            var value = line.Substring(firstQuote + 1, lastQuote - firstQuote - 1);
+
+            if (!int.TryParse(line, out var result))
+            {
+                return 0;
+            }
+
+            return result;
         }
 
         private void AttachMoves(IntermediateEntry current, PgnEntry pgnEntry)

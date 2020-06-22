@@ -18,7 +18,7 @@ namespace PGN2ABK
 
                 Console.WriteLine("Start");
                 var stopWatch = Stopwatch.StartNew();
-                parser.Parse(input, options.PliesCount);
+                var intermediateEntries = parser.Parse(input, options.PliesCount, options.MinElo);
                 var elapsed = stopWatch.Elapsed.TotalSeconds;
                 Console.WriteLine($"Stop: {elapsed}");
 
