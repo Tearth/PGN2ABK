@@ -7,11 +7,5 @@ namespace PGN2ABK.Pgn
     {
         public GameResult GameResult { get; set; }
         public IEnumerable<Move> Moves { get; set; }
-
-        public PgnEntry(GameResult whiteWon, IEnumerable<Move> moves)
-        {
-            GameResult = whiteWon;
-            Moves = moves;
-        }
     }
 }

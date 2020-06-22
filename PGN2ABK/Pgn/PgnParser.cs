@@ -6,7 +6,7 @@ namespace PGN2ABK.Pgn
 {
     public class PgnParser
     {
-        private PgnGameParser _gameParser;
+        private readonly PgnGameParser _gameParser;
 
         public PgnParser()
         {
@@ -15,60 +15,51 @@ namespace PGN2ABK.Pgn
 
         public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input)
         {
-            IntermediateEntry root = new IntermediateEntry(Move.Zero);
-            IntermediateEntry currentNode = root;
+            var root = new IntermediateEntry(Move.Zero);
+            var currentNode = root;
+
             foreach (var line in input.Where(p => p.StartsWith('1')))
             {
                 var pgnEntry = _gameParser.Parse(line);
-                foreach (var move in pgnEntry.Moves)
-                {
-                    if (!currentNode.Children.Any(p => p.Move == move))
-                    {
-                        var entry = new IntermediateEntry(move);
-                        switch (pgnEntry.GameResult)
-                        {
-                            case GameResult.WhiteWon:
-                            {
-                                entry.WhiteWins++;
-                                break;
-                            }
+                AttachMoves(currentNode, pgnEntry);
 
-                            case GameResult.BlackWon:
-                            {
-                                entry.BlackWins++;
-                                break;
-                            }
-                        }
-
-                        currentNode.Children.Add(entry);
-                        currentNode = entry;
-                    }
-                    else
-                    {
-                        var existingEntry = currentNode.Children.First(p => p.Move == move);
-                        switch (pgnEntry.GameResult)
-                        {
-                            case GameResult.WhiteWon:
-                            {
-                                existingEntry.WhiteWins++;
-                                break;
-                            }
-
-                            case GameResult.BlackWon:
-                            {
-                                existingEntry.BlackWins++;
-                                break;
-                            }
-                        }
-
-                        currentNode = existingEntry;
-                    }
-                }
-
+                // Reset root entry
                 currentNode = root;
             }
 
             return null;
+        }
+
+        private void AttachMoves(IntermediateEntry current, PgnEntry pgnEntry)
+        {
+            foreach (var move in pgnEntry.Moves)
+            {
+                if (current.Children.All(p => p.Move != move))
+                {
+                    AddNewIntermediateEntry(ref current, move, pgnEntry.GameResult);
+                }
+                else
+                {
+                    UpdateIntermediateEntry(ref current, move, pgnEntry.GameResult);
+                }
+            }
+        }
+
+        private void AddNewIntermediateEntry(ref IntermediateEntry current, Move move, GameResult result)
+        {
+            var entry = new IntermediateEntry(move);
+            entry.IncrementStats(result);
+
+            current.Children.Add(entry);
+            current = entry;
+        }
+
+        private void UpdateIntermediateEntry(ref IntermediateEntry current, Move move, GameResult result)
+        {
+            var existingEntry = current.Children.First(p => p.Move == move);
+            existingEntry.IncrementStats(result);
+
+            current = existingEntry;
         }
     }
 }

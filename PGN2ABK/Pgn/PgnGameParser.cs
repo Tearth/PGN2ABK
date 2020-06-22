@@ -14,15 +14,17 @@ namespace PGN2ABK.Pgn
             var skip = false;
 
             var parsedMoves = new List<Move>();
-            foreach (var rawMove in moves.Take(moves.Count() - 1))
+            var gameResult = GetGameResult(moves[^1]);
+
+            for (var i = 0; i < moves.Count - 1; i++)
             {
-                if (rawMove == "{")
+                if (moves[i] == "{")
                 {
                     skip = true;
                     continue;
                 }
 
-                if (rawMove == "}")
+                if (moves[i] == "}")
                 {
                     skip = false;
                     continue;
@@ -33,19 +35,26 @@ namespace PGN2ABK.Pgn
                     continue;
                 }
 
-                var parsedMove = board.ParseMove(rawMove, white);
+                var parsedMove = board.ParseMove(moves[i], white);
                 board.ExecuteMove(parsedMove);
                 parsedMoves.Add(parsedMove);
 
                 white = !white;
             }
 
-            return new PgnEntry(GetGameResult(moves.Last()), parsedMoves);
+            return new PgnEntry
+            {
+                Moves = parsedMoves,
+                GameResult = gameResult
+            };
         }
 
-        private IEnumerable<string> SplitGameIntoMoves(string game)
+        private List<string> SplitGameIntoMoves(string game)
         {
-            return game.Split(' ').Where(p => !p.EndsWith('.'));
+            return game
+                .Split(' ')
+                .Where(p => !p.EndsWith('.'))
+                .ToList();
         }
 
         private GameResult GetGameResult(string result)
