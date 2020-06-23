@@ -36,10 +36,10 @@ namespace PGN2ABK
 
                 var abkGenerator = new AbkGenerator();
                 var input = File.ReadLines(options.Input);
-
+                
                 _timeFromStart = DateTime.Now;
 
-                var intermediateEntries = parser.Parse(input, options.PliesCount, options.MinElo);
+                var intermediateEntries = parser.Parse(input, options.PliesCount, options.MinElo, options.Multithreading);
                 abkGenerator.Save(options.Output, intermediateEntries);
 
                 Console.Read();

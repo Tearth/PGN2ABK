@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using PGN2ABK.Board;
 
 namespace PGN2ABK.Pgn
@@ -13,13 +14,14 @@ namespace PGN2ABK.Pgn
         private ulong _parsedGames;
         private ulong _parsedMoves;
         private ulong _readChars;
+        private object _attachLock = new object();
 
         public PgnParser()
         {
             _gameParser = new PgnGameParser();
         }
 
-        public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input, int maxPlies, int minElo)
+        public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input, int maxPlies, int minElo, bool multithreading)
         {
             var root = new IntermediateEntry(Move.Zero, -1);
             var currentNode = root;
@@ -42,15 +44,14 @@ namespace PGN2ABK.Pgn
                 {
                     if ((whiteElo + blackElo) / 2 >= minElo)
                     {
-                        var pgnEntry = _gameParser.Parse(line, maxPlies);
-                        _parsedGames++;
-
-                        AttachMoves(currentNode, pgnEntry);
-
-                        // Reset root entry
-                        currentNode = root;
-
-                        OnStatusUpdate?.Invoke(this, new PgnStatusEventArgs(_parsedGames, _parsedMoves, _readChars));
+                        if (multithreading)
+                        {
+                            ThreadPool.QueueUserWorkItem(_ => ParseMoves(ref currentNode, root, line, maxPlies));
+                        }
+                        else
+                        {
+                            ParseMoves(ref currentNode, root, line, maxPlies);
+                        }
                     }
                 }
             }
@@ -72,23 +73,38 @@ namespace PGN2ABK.Pgn
             return result;
         }
 
+        private void ParseMoves(ref IntermediateEntry currentNode, IntermediateEntry root, string line, int maxPlies)
+        {
+            var pgnEntry = _gameParser.Parse(line, maxPlies);
+            _parsedGames++;
+
+            AttachMoves(currentNode, pgnEntry);
+
+            // Reset root entry
+            currentNode = root;
+
+            OnStatusUpdate?.Invoke(this, new PgnStatusEventArgs(_parsedGames, _parsedMoves, _readChars));
+        }
+
         private void AttachMoves(IntermediateEntry current, PgnEntry pgnEntry)
         {
-            var ply = 0;
-
-            foreach (var move in pgnEntry.Moves)
+            lock (_attachLock)
             {
-                if (current.Children.All(p => p.Move != move))
+                var ply = 0;
+                foreach (var move in pgnEntry.Moves)
                 {
-                    AddNewIntermediateEntry(ref current, move, ply, pgnEntry.GameResult);
-                }
-                else
-                {
-                    UpdateIntermediateEntry(ref current, move, pgnEntry.GameResult);
-                }
+                    if (current.Children.All(p => p.Move != move))
+                    {
+                        AddNewIntermediateEntry(ref current, move, ply, pgnEntry.GameResult);
+                    }
+                    else
+                    {
+                        UpdateIntermediateEntry(ref current, move, pgnEntry.GameResult);
+                    }
 
-                _parsedMoves++;
-                ply++;
+                    _parsedMoves++;
+                    ply++;
+                }
             }
         }
 
