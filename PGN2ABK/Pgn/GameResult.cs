@@ -5,6 +5,7 @@
         None,
         WhiteWon,
         BlackWon,
-        Draw
+        Draw,
+        Unknown
     }
 }

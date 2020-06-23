@@ -42,6 +42,11 @@ namespace PGN2ABK.Pgn
                     Draws++;
                     return;
                 }
+
+                case GameResult.Unknown:
+                {
+                    return;
+                }
             }
 
             throw new ArgumentException("Invalid game result: \"{result\"", nameof(result));

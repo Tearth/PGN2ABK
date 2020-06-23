@@ -336,10 +336,21 @@ namespace PGN2ABK.Board
                     if (ambiguity)
                     {
                         // File ambiguity
-                        var file = move[1] - 'a' + 1;
-                        if (file != x)
+                        if (char.IsLetter(move[1]))
                         {
-                            continue;
+                            var file = move[1] - 'a' + 1;
+                            if (file != x)
+                            {
+                                continue;
+                            }
+                        }
+                        else if (char.IsDigit(move[1]))
+                        {
+                            var rank = move[1] - '0';
+                            if (rank != y)
+                            {
+                                continue;
+                            }
                         }
                     }
 

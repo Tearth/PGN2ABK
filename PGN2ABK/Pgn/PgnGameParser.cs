@@ -35,7 +35,7 @@ namespace PGN2ABK.Pgn
                 }
 
                 // Game result
-                if (moves[i] == "1-0" || moves[i] == "0-1" || moves[i] == "1/2-1/2")
+                if (moves[i] == "1-0" || moves[i] == "0-1" || moves[i] == "1/2-1/2" || moves[i] == "*")
                 {
                     continue;
                 }
@@ -74,9 +74,10 @@ namespace PGN2ABK.Pgn
                 case "1-0": return GameResult.WhiteWon;
                 case "0-1": return GameResult.BlackWon;
                 case "1/2-1/2": return GameResult.Draw;
+                case "*": return GameResult.Unknown;
             }
 
-            return GameResult.None;
+            throw new ArgumentException($"Can't parse game result: \"{result}\"", nameof(result));
         }
     }
 }
