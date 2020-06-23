@@ -17,8 +17,6 @@ namespace PGN2ABK.Abk
             var currentSiblingsCount = intermediateEntries.Count() - 1;
             var currentIndex = 900;
             var freeIndex = currentIndex + intermediateEntries.Count();
-            var white = true;
-            var ply = 0;
 
             using (var fileStream = new FileStream(path, FileMode.OpenOrCreate))
             using (var binaryWriter = new BinaryWriter(fileStream))
@@ -27,7 +25,7 @@ namespace PGN2ABK.Abk
                 while (entriesQueue.TryDequeue(out var intermediateEntry))
                 {
                     var nextSibling = currentSiblingsCount > 0 ? currentIndex + 1 : -1;
-                    var abkEntry = new AbkEntry(intermediateEntry, white, ply, freeIndex, nextSibling);
+                    var abkEntry = new AbkEntry(intermediateEntry, freeIndex, nextSibling);
 
                     if (intermediateEntry.Children.Count > 0)
                     {

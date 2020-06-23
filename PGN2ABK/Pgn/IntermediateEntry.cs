@@ -7,15 +7,17 @@ namespace PGN2ABK.Pgn
     public class IntermediateEntry
     {
         public Move Move { get; set; }
+        public int Ply { get; set; }
         public List<IntermediateEntry> Children { get; set; }
         public int WhiteWins { get; set; }
         public int BlackWins { get; set; }
         public int Draws { get; set; }
         public int TotalGames => WhiteWins + BlackWins + Draws;
 
-        public IntermediateEntry(Move move)
+        public IntermediateEntry(Move move, int ply)
         {
             Move = move;
+            Ply = ply;
             Children = new List<IntermediateEntry>();
         }
 

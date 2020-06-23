@@ -16,7 +16,7 @@ namespace PGN2ABK.Pgn
 
         public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input, int maxPlies, int minElo)
         {
-            var root = new IntermediateEntry(Move.Zero);
+            var root = new IntermediateEntry(Move.Zero, -1);
             var currentNode = root;
             var whiteElo = 0;
             var blackElo = 0;
@@ -63,22 +63,26 @@ namespace PGN2ABK.Pgn
 
         private void AttachMoves(IntermediateEntry current, PgnEntry pgnEntry)
         {
+            var ply = 0;
+
             foreach (var move in pgnEntry.Moves)
             {
                 if (current.Children.All(p => p.Move != move))
                 {
-                    AddNewIntermediateEntry(ref current, move, pgnEntry.GameResult);
+                    AddNewIntermediateEntry(ref current, move, ply, pgnEntry.GameResult);
                 }
                 else
                 {
                     UpdateIntermediateEntry(ref current, move, pgnEntry.GameResult);
                 }
+
+                ply++;
             }
         }
 
-        private void AddNewIntermediateEntry(ref IntermediateEntry current, Move move, GameResult result)
+        private void AddNewIntermediateEntry(ref IntermediateEntry current, Move move, int ply, GameResult result)
         {
-            var entry = new IntermediateEntry(move);
+            var entry = new IntermediateEntry(move, ply);
             entry.IncrementStats(result);
 
             current.Children.Add(entry);

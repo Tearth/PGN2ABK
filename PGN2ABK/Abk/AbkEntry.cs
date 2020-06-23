@@ -16,16 +16,16 @@ namespace PGN2ABK.Abk
         public int NextMove { get; }
         public int NextSibling { get; }
 
-        public AbkEntry(IntermediateEntry intermediateEntry, bool white, int ply, int nextMove, int nextSibling)
+        public AbkEntry(IntermediateEntry intermediateEntry, int nextMove, int nextSibling)
         {
             From = intermediateEntry.Move.From.ToIndex();
             To = intermediateEntry.Move.To.ToIndex();
             Promotion = PieceConverter.ToIndex(intermediateEntry.Move.PromotionPiece);
             Priority = 5;
             Games = intermediateEntry.TotalGames;
-            Won = white ? intermediateEntry.WhiteWins : intermediateEntry.BlackWins;
-            Lost = white ? intermediateEntry.BlackWins : intermediateEntry.WhiteWins;
-            PlyCount = ply;
+            Won = intermediateEntry.WhiteWins;
+            Lost = intermediateEntry.BlackWins;
+            PlyCount = intermediateEntry.Ply;
             NextMove = nextMove;
             NextSibling = nextSibling;
         }
