@@ -1,5 +1,4 @@
-﻿using System;
-using PGN2ABK.Board;
+﻿using PGN2ABK.Board;
 
 namespace PGN2ABK.Helpers
 {

@@ -14,7 +14,7 @@ namespace PGN2ABK.Pgn
         private ulong _parsedGames;
         private ulong _parsedMoves;
         private ulong _readChars;
-        private object _attachLock = new object();
+        private readonly object _attachLock = new object();
 
         public PgnParser()
         {
@@ -65,7 +65,7 @@ namespace PGN2ABK.Pgn
             var lastQuote = line.IndexOf('"', firstQuote + 1);
             var value = line.Substring(firstQuote + 1, lastQuote - firstQuote - 1);
 
-            if (!int.TryParse(line, out var result))
+            if (!int.TryParse(value, out var result))
             {
                 return 0;
             }

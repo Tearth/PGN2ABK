@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using System.Text.RegularExpressions;
 using PGN2ABK.Helpers;
 
 namespace PGN2ABK.Board
