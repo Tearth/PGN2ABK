@@ -7,7 +7,12 @@ namespace PGN2ABK.Pgn
 {
     public class PgnParser
     {
+        public event EventHandler<PgnStatusEventArgs> OnStatusUpdate;
+
         private readonly PgnGameParser _gameParser;
+        private ulong _parsedGames;
+        private ulong _parsedMoves;
+        private ulong _readChars;
 
         public PgnParser()
         {
@@ -23,6 +28,8 @@ namespace PGN2ABK.Pgn
 
             foreach (var line in input)
             {
+                _readChars += (ulong)line.Length + 1;
+
                 if (line.StartsWith("[WhiteElo"))
                 {
                     whiteElo = GetElo(line);
@@ -36,10 +43,14 @@ namespace PGN2ABK.Pgn
                     if ((whiteElo + blackElo) / 2 >= minElo)
                     {
                         var pgnEntry = _gameParser.Parse(line, maxPlies);
+                        _parsedGames++;
+
                         AttachMoves(currentNode, pgnEntry);
 
                         // Reset root entry
                         currentNode = root;
+
+                        OnStatusUpdate?.Invoke(this, new PgnStatusEventArgs(_parsedGames, _parsedMoves, _readChars));
                     }
                 }
             }
@@ -76,6 +87,7 @@ namespace PGN2ABK.Pgn
                     UpdateIntermediateEntry(ref current, move, pgnEntry.GameResult);
                 }
 
+                _parsedMoves++;
                 ply++;
             }
         }
