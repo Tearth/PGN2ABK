@@ -28,7 +28,7 @@ namespace PGN2ABK
                     BackgroundCharacter = '\u2593',
                     ShowEstimatedDuration = true
                 };
-                _progressBar = new ProgressBar(100, "Initial message", progressBarOptions);
+                _progressBar = new ProgressBar(100, "Initializing...", progressBarOptions);
 
                 var parser = new PgnParser();
                 parser.OnStatusUpdate += Parser_OnStatusUpdate;
