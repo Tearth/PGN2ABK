@@ -41,6 +41,8 @@ namespace PGN2ABK
                 var intermediateEntries = parser.Parse(input, options.PliesCount, options.MinElo, options.MinMainTime, options.Multithreading);
                 abkGenerator.Save(options.Output, intermediateEntries);
 
+                _progressBar.Tick(100, "Finished!");
+
                 Console.Read();
             });
         }

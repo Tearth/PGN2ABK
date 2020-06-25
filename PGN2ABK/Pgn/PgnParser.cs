@@ -71,7 +71,14 @@ namespace PGN2ABK.Pgn
             var lastQuote = line.IndexOf('"', firstQuote + 1);
             var value = line.Substring(firstQuote + 1, lastQuote - firstQuote - 1);
 
-            return (T)Convert.ChangeType(value, typeof(T));
+            try
+            {
+                return (T)Convert.ChangeType(value, typeof(T));
+            }
+            catch (FormatException)
+            {
+                return default(T);
+            }
         }
 
         private void ParseMoves(IntermediateEntry root, string line, int maxPlies)
