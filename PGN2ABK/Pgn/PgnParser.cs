@@ -24,7 +24,6 @@ namespace PGN2ABK.Pgn
         public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input, int maxPlies, int minElo, bool multithreading)
         {
             var root = new IntermediateEntry(Move.Zero, -1);
-            var currentNode = root;
             var whiteElo = 0;
             var blackElo = 0;
 
@@ -46,11 +45,11 @@ namespace PGN2ABK.Pgn
                     {
                         if (multithreading)
                         {
-                            ThreadPool.QueueUserWorkItem(_ => ParseMoves(ref currentNode, root, line, maxPlies));
+                            ThreadPool.QueueUserWorkItem(_ => ParseMoves(root, line, maxPlies));
                         }
                         else
                         {
-                            ParseMoves(ref currentNode, root, line, maxPlies);
+                            ParseMoves(root, line, maxPlies);
                         }
                     }
                 }
@@ -73,15 +72,12 @@ namespace PGN2ABK.Pgn
             return result;
         }
 
-        private void ParseMoves(ref IntermediateEntry currentNode, IntermediateEntry root, string line, int maxPlies)
+        private void ParseMoves(IntermediateEntry root, string line, int maxPlies)
         {
             var pgnEntry = _gameParser.Parse(line, maxPlies);
             _parsedGames++;
 
-            AttachMoves(currentNode, pgnEntry);
-
-            // Reset root entry
-            currentNode = root;
+            AttachMoves(root, pgnEntry);
 
             OnStatusUpdate?.Invoke(this, new PgnStatusEventArgs(_parsedGames, _parsedMoves, _readChars));
         }
@@ -95,11 +91,11 @@ namespace PGN2ABK.Pgn
                 {
                     if (current.Children.All(p => p.Move != move))
                     {
-                        AddNewIntermediateEntry(ref current, move, ply, pgnEntry.GameResult);
+                        current = AddNewIntermediateEntry(current, move, ply, pgnEntry.GameResult);
                     }
                     else
                     {
-                        UpdateIntermediateEntry(ref current, move, pgnEntry.GameResult);
+                        current = UpdateIntermediateEntry(current, move, pgnEntry.GameResult);
                     }
 
                     _parsedMoves++;
@@ -108,21 +104,21 @@ namespace PGN2ABK.Pgn
             }
         }
 
-        private void AddNewIntermediateEntry(ref IntermediateEntry current, Move move, int ply, GameResult result)
+        private IntermediateEntry AddNewIntermediateEntry(IntermediateEntry current, Move move, int ply, GameResult result)
         {
             var entry = new IntermediateEntry(move, ply);
             entry.IncrementStats(result);
 
             current.Children.Add(entry);
-            current = entry;
+            return entry;
         }
 
-        private void UpdateIntermediateEntry(ref IntermediateEntry current, Move move, GameResult result)
+        private IntermediateEntry UpdateIntermediateEntry(IntermediateEntry current, Move move, GameResult result)
         {
             var existingEntry = current.Children.First(p => p.Move == move);
             existingEntry.IncrementStats(result);
 
-            current = existingEntry;
+            return existingEntry;
         }
     }
 }
