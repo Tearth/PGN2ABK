@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using PGN2ABK.Board;
+using PGN2ABK.Helpers;
 
 namespace PGN2ABK.Pgn
 {
@@ -21,11 +22,12 @@ namespace PGN2ABK.Pgn
             _gameParser = new PgnGameParser();
         }
 
-        public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input, int maxPlies, int minElo, bool multithreading)
+        public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input, int maxPlies, int minElo, int minMainTime, bool multithreading)
         {
             var root = new IntermediateEntry(Move.Zero, -1);
             var whiteElo = 0;
             var blackElo = 0;
+            var mainTimeSeconds = 0;
 
             foreach (var line in input)
             {
@@ -33,15 +35,20 @@ namespace PGN2ABK.Pgn
 
                 if (line.StartsWith("[WhiteElo"))
                 {
-                    whiteElo = GetElo(line);
+                    whiteElo = GetAttributeValue<int>(line);
                 }
                 else if (line.StartsWith("[BlackElo"))
                 {
-                    blackElo = GetElo(line);
+                    blackElo = GetAttributeValue<int>(line);
+                }
+                else if (line.StartsWith("[TimeControl"))
+                {
+                    var attributeValue = GetAttributeValue<string>(line);
+                    mainTimeSeconds = TimeConverter.Parse(attributeValue).Main;
                 }
                 else if (line.StartsWith('1'))
                 {
-                    if ((whiteElo + blackElo) / 2 >= minElo)
+                    if ((whiteElo + blackElo) / 2 >= minElo && mainTimeSeconds >= minMainTime)
                     {
                         if (multithreading)
                         {
@@ -58,18 +65,13 @@ namespace PGN2ABK.Pgn
             return root.Children;
         }
 
-        private int GetElo(string line)
+        private T GetAttributeValue<T>(string line)
         {
             var firstQuote = line.IndexOf('"');
             var lastQuote = line.IndexOf('"', firstQuote + 1);
             var value = line.Substring(firstQuote + 1, lastQuote - firstQuote - 1);
 
-            if (!int.TryParse(value, out var result))
-            {
-                return 0;
-            }
-
-            return result;
+            return (T)Convert.ChangeType(value, typeof(T));
         }
 
         private void ParseMoves(IntermediateEntry root, string line, int maxPlies)

@@ -38,7 +38,7 @@ namespace PGN2ABK
                 
                 _timeFromStart = DateTime.Now;
 
-                var intermediateEntries = parser.Parse(input, options.PliesCount, options.MinElo, options.Multithreading);
+                var intermediateEntries = parser.Parse(input, options.PliesCount, options.MinElo, options.MinMainTime, options.Multithreading);
                 abkGenerator.Save(options.Output, intermediateEntries);
 
                 Console.Read();
