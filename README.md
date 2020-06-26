@@ -1,5 +1,5 @@
 # PGN2ABK
-This is the simple tool to generate ABK (Arena's book format) files using a collection of games saved in the PGN file. There are several sources of PGN files, my favorite one is https://database.lichess.org/. It takes about 30 minutes to parse 190 GB file on normal HDD.
+This is the simple tool to generate [ABK](https://www.chessprogramming.org/ABK) (Arena's book format) files using a collection of games saved in the PGN file. There are several sources of PGN files, my favorite one is https://database.lichess.org/. It takes about 30 minutes to parse 190 GB file on normal HDD.
 
 Program has been written in C# for .NET Core 3 platform. It uses [CommandLineParser](https://github.com/commandlineparser/commandline) (to parse parameters) and [ShellProgressBar](https://github.com/Mpdreamz/shellprogressbar).
 
