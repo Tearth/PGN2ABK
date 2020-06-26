@@ -16,7 +16,7 @@ namespace PGN2ABK.CommandLine
         [Option('e', "elo", Required = false, HelpText = "Minimal average ELO of players to parse the game.")]
         public int MinElo { get; set; }
 
-        [Option('t', "time", Required = false, HelpText = "Minimal initial game time to parse the game.")]
+        [Option('t', "time", Required = false, HelpText = "Minimal initial game time (in minutes) to parse the game.")]
         public int MinMainTime { get; set; }
 
         [Option('m', "multithreading", Required = false, HelpText = "Enable support for multithreading.")]
