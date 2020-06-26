@@ -16,6 +16,11 @@ namespace PGN2ABK.Abk
             var currentIndex = 900;
             var freeIndex = currentIndex + intermediateEntries.Count();
 
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+
             using (var fileStream = new FileStream(path, FileMode.OpenOrCreate))
             using (var binaryWriter = new BinaryWriter(fileStream))
             {
