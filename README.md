@@ -10,7 +10,7 @@ Program has been written in C# for .NET Core 3 platform. It uses [CommandLinePar
 -o, --output            Required. ABK output file.
 -p, --plies             (Default: 2147483647) Maximal number of plies to parse.
 -e, --elo               Minimal average ELO of players to parse the game.
--t, --time              Minimal initial game time to parse the game.
+-t, --time              Minimal initial game time (in minutes) to parse the game.
 -m, --multithreading    Enable support for multithreading.
 --help                  Display this help screen.
 --version               Display version information.
@@ -18,7 +18,7 @@ Program has been written in C# for .NET Core 3 platform. It uses [CommandLinePar
 
 # Example
 
-Input: `PGN2ABK.exe -i D:\DB\lichess_db_standard_rated_2013-01.pgn -o C:\Users\Pawel\Desktop\generated.abk -p 20 -m`
+Input: `PGN2ABK.exe -i .\lichess_db_standard_rated_2013-01.pgn -o .\generated.abk -p 20 -t 15 -m`
 
 Output:
 ![Output](https://i.imgur.com/J4FcrwN.png)
