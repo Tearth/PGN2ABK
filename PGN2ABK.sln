@@ -5,7 +5,14 @@ VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PGN2ABK", "PGN2ABK\PGN2ABK.csproj", "{73641208-B7FD-4E2A-AFD6-209AEB947AD7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PGN2ABK.Tests", "PGN2ABK.Tests\PGN2ABK.Tests.csproj", "{BCB7D32D-8F81-49EE-8E7D-40CC20A31B7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PGN2ABK.Tests", "PGN2ABK.Tests\PGN2ABK.Tests.csproj", "{BCB7D32D-8F81-49EE-8E7D-40CC20A31B7C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7D91FE69-7BED-4CA3-92C9-93C83183A929}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

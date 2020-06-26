@@ -49,7 +49,7 @@ namespace PGN2ABK.Pgn
                 }
             }
 
-            throw new ArgumentException("Invalid game result: \"{result\"", nameof(result));
+            throw new ArgumentException($"Invalid game result: \"{result}\"", nameof(result));
         }
     }
 }
