@@ -8,13 +8,14 @@ namespace PGN2ABK.Abk
 {
     public class AbkGenerator
     {
-        public void Save(string path, IEnumerable<IntermediateEntry> intermediateEntries)
+        public void Save(string path, List<IntermediateEntry> intermediateEntries)
         {
+            var currentIndex = 900;
             var entriesQueue = new Queue<IntermediateEntry>(intermediateEntries);
             var siblingsCountQueue = new Queue<int>();
-            var currentSiblingsCount = intermediateEntries.Count() - 1;
-            var currentIndex = 900;
-            var freeIndex = currentIndex + intermediateEntries.Count();
+
+            var currentSiblingsCount = intermediateEntries.Count - 1;
+            var freeIndex = currentIndex + intermediateEntries.Count;
 
             if (File.Exists(path))
             {

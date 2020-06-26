@@ -22,7 +22,7 @@ namespace PGN2ABK.Pgn
             _gameParser = new PgnGameParser();
         }
 
-        public IEnumerable<IntermediateEntry> Parse(IEnumerable<string> input, int maxPlies, int minElo, int minMainTime, bool multithreading)
+        public List<IntermediateEntry> Parse(IEnumerable<string> input, int maxPlies, int minElo, int minMainTime, bool multithreading)
         {
             var root = new IntermediateEntry(Move.Zero, -1);
             var whiteElo = 0;
@@ -77,7 +77,7 @@ namespace PGN2ABK.Pgn
             }
             catch (FormatException)
             {
-                return default(T);
+                return default;
             }
         }
 

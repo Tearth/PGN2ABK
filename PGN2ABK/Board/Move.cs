@@ -33,7 +33,7 @@
 
         public static bool operator !=(Move a, Move b)
         {
-            return !(a.From == b.From && a.To == b.To);
+            return !(a == b);
         }
 
         public override bool Equals(object obj)
